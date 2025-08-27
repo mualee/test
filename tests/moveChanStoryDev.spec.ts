@@ -11,8 +11,8 @@ interface UserData {
   creditAfter: number;
 }
 const data: UserData[] = [];
-const startDate = '2025-08-21';
-const endDate = '2025-08-21';
+const startDate = '2025-08-27';
+const endDate = '2025-08-27';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 
@@ -40,34 +40,26 @@ let countRow = 0;
   await page.waitForSelector('table', { timeout: 10000 });
 
   // Check how many rows are actually in the table
-
-  const itemsLocator = page.locator('//*[@id="root"]/div/main/div[2]/div/div/div/div[3]/div[1]/div[1]/p[2]');
-  await itemsLocator.waitFor({ timeout: 15000 });
-  const itemsText = await itemsLocator.textContent() ?? '0';
+//loader 2 sec
+  await page.waitForTimeout(4000);
+  const itemsText = await page.locator('#total-charge-history').textContent().catch(() => '0');
   console.log('Raw items text:', itemsText);
-  let items = Number(itemsText.replace(/[^0-9]/g, ''));
+  let items = Number.parseInt((itemsText || '0').replace(/[^0-9]/g, ''), 10) || 0;
   console.log('Total items found:', items);
 
   // If no items found, try to count table rows as fallback
   if (items === 0) {
     console.log('No items found with primary selector, trying table row count...');
-    const tableRows = await page.locator('tbody tr').count();
-    console.log('Table rows found:', tableRows);
 
-    if (tableRows > 0) {
-      items = tableRows;
-      console.log('Using table row count as items:', items);
-    } else {
-      console.log('No data found. Trying a different approach...');
-      // Set a minimum number to test with
-      items = 10; // Test with 10 rows to see if pagination works
-      console.log('Setting items to 10 for testing');
-    }
-  }
+
+
+  } else if (items > 0) {
+
+   console.log('Items found with primary selector:', items);
   // Use totalRows instead of hard-coded 200
   console.log(`Starting loop with ${items} items to process`);
-  while (countRow < items) {
-    const tables = (countRow + 1).toString();
+
+   while (countRow < items) {
 
     // Check if we need to go to next page (every 50 rows)
     if (countPage === 50) {
@@ -83,7 +75,7 @@ let countRow = 0;
       console.log(`Processing row ${countRow + 1}...`);
 
       //wait for the detail page to load
-      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 20000 });
+      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 40000 });
 
       // Get all required data in parallel for better performance
       const [fullName, credit_before, credit_after, total_credit,status] = await Promise.all([
@@ -98,8 +90,8 @@ let countRow = 0;
       const before = parseInt((credit_before || '0').replace(/[^0-9]/g, ''), 10) || 0;
       const after = parseInt((credit_after || '0').replace(/[^0-9]/g, ''), 10) || 0;
     const totalCredit = parseInt((total_credit || '0').replace(/[^0-9]/g, ''), 10) || 0;
-
-      // # get all
+ // ###########################################################################
+      // # ທຸກຄົນ
     //   data.push({
     //     id: id++,
     //     name: fullName || 'Unknown',
@@ -107,8 +99,11 @@ let countRow = 0;
     //     totalCredit: totalCredit,
     //     creditAfter: after
     // });
-    // console.log(`Row ${countRow + 1}: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
-    // if (status === statusTH[0] || status === statusEN[0]) {
+
+     // console.log(`Row ${countRow + 1}: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+   //#################################################################################
+     // # ທຸກຄົນ ທີ ກຳລັັງສາກ [0]
+     // if (status === statusTH[0] || status === statusEN[0]) {
     //    data.push({
     //     id: id++,
     //     name: fullName || 'Unknown',
@@ -118,7 +113,9 @@ let countRow = 0;
     // });
     // console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
 
-    // }
+     // }
+     //#######################################################################################
+     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1]
     if (status === statusTH[1] || status === statusEN[1]) {
        data.push({
         id: id++,
@@ -131,7 +128,8 @@ let countRow = 0;
 
     }
 
-    //# Check if calculation is correct
+    //# //#################################################################################
+     // # ທຸກຄົນ ທີ ເງີນບໍ່ຕົງ
     // if (before - totalCredit !== after) {
     //   data.push({
     //     id: id++,
@@ -142,6 +140,21 @@ let countRow = 0;
     //   });
 
     //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
+     // }
+     //#################################################################################
+     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ
+    // if (status === statusTH[1] || status === statusEN[1]) {
+    //    if (before - totalCredit !== after) {
+    //   data.push({
+    //     id: id++,
+    //     name: fullName || 'Unknown',
+    //     creditBefore: before,
+    //     totalCredit: totalCredit,
+    //     creditAfter: after
+    //   });
+
+    //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
+    //  }
     // }
 
 
@@ -152,6 +165,8 @@ let countRow = 0;
       // Navigate back with error handling
 
 
+
+  }
 
   }
 
