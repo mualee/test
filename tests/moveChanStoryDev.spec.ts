@@ -2,19 +2,25 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../using.json');
+const usingPath = path.join(__dirname, '../output/using.json');
 interface UserData {
   id: number;
   name: string;
   creditBefore: number;
   totalCredit: number;
   creditAfter: number;
+  state_at: string;
+  end_at: string;
+  out_end_at: string;
+  errorCode: string;
 }
 const data: UserData[] = [];
-const startDate = '2025-08-27';
-const endDate = '2025-08-27';
+const startDate = '2025-08-26';
+const endDate = '2025-08-26';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
+
+// const errorCodeText = ''
 
 test('check customer', async ({ page }) => {
   test.setTimeout(7200000); // 2 hours timeout for processing all records
@@ -68,8 +74,9 @@ let countRow = 0;
       await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`);
       await page.waitForSelector('table', { timeout: 10000 });
       countPage = 0; // Reset page counter
-    }
+     }
 
+const errorCodeIndex = countPage+1
 
 
       console.log(`Processing row ${countRow + 1}...`);
@@ -78,12 +85,17 @@ let countRow = 0;
       await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 40000 });
 
       // Get all required data in parallel for better performance
-      const [fullName, credit_before, credit_after, total_credit,status] = await Promise.all([
+      const [fullName, credit_before, credit_after, total_credit,status, state_at, end_at, out_end_at,errorCodeText] = await Promise.all([
         page.locator('#user-full-name-'+(countRow+1)).textContent().catch(() => ''),
         page.locator('#credit-before-cal-'+(countRow+1)).textContent().catch(() => '0'),
         page.locator('#credit-after-cal-'+(countRow+1)).textContent().catch(() => '0'),
         page.locator('#total-credit-now-' + (countRow + 1)).textContent().catch(() => '0'),
-        page.locator('#status-' + (countRow + 1)).textContent().catch(() => '')
+        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator(`tr:nth-child(${errorCodeIndex}) > td:nth-child(16)`).textContent().catch(() => '')
+
       ]);
 
       // Convert string values to numbers with better parsing
@@ -116,31 +128,38 @@ let countRow = 0;
      // }
      //#######################################################################################
      // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1]
-    if (status === statusTH[1] || status === statusEN[1]) {
-       data.push({
-        id: id++,
-        name: fullName || 'Unknown',
-        creditBefore: before,
-        totalCredit: totalCredit,
-        creditAfter: after
-    });
-    console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+    // if (status === statusTH[1] || status === statusEN[1]) {
+    //    data.push({
+    //     id: id++,
+    //     name: fullName || 'Unknown',
+    //     creditBefore: before||0,
+    //     totalCredit: totalCredit||0,
+    //     creditAfter: after||0,
+    //     state_at: state_at || '',
+    //     end_at: end_at || '',
+    //     out_end_at: out_end_at || ''
+    // });
+    // console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
 
-    }
+    // }
 
     //# //#################################################################################
      // # ທຸກຄົນ ທີ ເງີນບໍ່ຕົງ
-    // if (before - totalCredit !== after) {
-    //   data.push({
-    //     id: id++,
-    //     name: fullName || 'Unknown',
-    //     creditBefore: before,
-    //     totalCredit: totalCredit,
-    //     creditAfter: after
-    //   });
+    if (before - totalCredit !== after &&  (errorCodeText!=='-' && errorCodeText!=='')) {
+      data.push({
+      id: id++,
+        name: fullName || 'Unknown',
+        creditBefore: before||0,
+        totalCredit: totalCredit||0,
+        creditAfter: after||0,
+        state_at: state_at || '',
+        end_at: end_at || '',
+        out_end_at: out_end_at || '',
+        errorCode: errorCodeText || ''
+      });
 
-    //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
-     // }
+      console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
+     }
      //#################################################################################
      // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ
     // if (status === statusTH[1] || status === statusEN[1]) {
@@ -172,7 +191,7 @@ let countRow = 0;
 
   // Save data to using.json
   try {
-    const filePath = path.join(__dirname, 'Allused.json');
+    const filePath = path.join(__dirname, 'output/AllusedsIn26_08_2025.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to using.json`);
     console.log('Data saved:', data);
