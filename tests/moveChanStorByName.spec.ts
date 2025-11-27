@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../output/using.json');
-const AllusedsIn26_08_2025 = path.join(__dirname, './output/AllusedsIn15_09_2025.json');
+const usingPath = path.join(__dirname, '../output/AllusedsIn2025-11-27v2.json');
+const AllusedsIn26_08_2025 = path.join(__dirname, './output/AllusedsIn2025-11-27v2.json');
 // import json from '../output/AllusedsIn26_08_2025.json';
 const datas = AllusedsIn26_08_2025 && fs.existsSync(AllusedsIn26_08_2025) ? JSON.parse(fs.readFileSync(AllusedsIn26_08_2025, 'utf-8')) : [];
 
@@ -31,8 +31,8 @@ interface UserData {
   errorCode: string;
 }
 const data: UserData[] = [];
-const startDate = '2025-09-15';
-const endDate = '2025-09-15';
+const startDate = '2025-11-27';
+const endDate = '2025-11-27';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 // day == getDate() only dd from startDate
