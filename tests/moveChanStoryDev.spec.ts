@@ -17,11 +17,11 @@ interface UserData {
 }
 const data: UserData[] = [];
 //yyyy-mm-dd
-const startDate = '2025-11-27';
-const endDate = '2025-11-27';
+const startDate = '2025-11-26';
+const endDate = '2025-11-26';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
-const adjusted = '0 LAK';
+
 
 // const errorCodeText = ''
 
@@ -29,12 +29,10 @@ test('check customer', async ({ page }) => {
   test.setTimeout(7200000); // 2 hours timeout for processing all records
   await page.goto('https://admin.moveinno.com/');
   // Expect a title "to contain" a substring.
-  await page.locator('div').filter({ hasText: /^ชื่อผู้ใช้$/ }).click();
-  // await page.getByPlaceholder('ป้อนชื่อผู้ใช้').fill('Evmanager');
-  await page.getByPlaceholder('ป้อนชื่อผู้ใช้').fill('Evlaomanager');
-  await page.getByLabel('รหัสผ่าน').click();
-  // await page.getByPlaceholder('******').fill('1234');
-  await page.getByPlaceholder('******').fill('HQj0[4Ii1Ghj8H2*');
+  await page.locator('#username').click();
+  await page.locator('#username').fill('Evlaomanager');
+  await page.locator('#password').click();
+  await page.locator('#password').fill('HQj0[4Ii1Ghj8H2*');
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
 
   await page.getByRole('link', { name: 'ประวัติการชาร์จ' }).click();
@@ -78,7 +76,7 @@ let countRow = 0;
       await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`);
       await page.waitForSelector('table', { timeout: 10000 });
       countPage = 0; // Reset page counter
-      tableRows=1;
+      tableRows=0;
      }
 
 const errorCodeIndex = countPage+1
@@ -90,18 +88,22 @@ const errorCodeIndex = countPage+1
       await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 40000 });
 
       // Get all required data in parallel for better performance
-      const [fullName,adjusted_credit, credit_before, credit_after, total_credit,status, state_at, end_at, out_end_at,errorCodeText] = await Promise.all([
-        page.locator('#user-full-name-'+(countRow+1)).textContent().catch(() => ''),
-        page.locator('tr:nth-child('+(tableRows+1)+') > td:nth-child(12)').textContent().catch(() => '0 LAK'),
-        page.locator('#credit-before-cal-'+(countRow+1)).textContent().catch(() => '0'),
-        page.locator('#credit-after-cal-'+(countRow+1)).textContent().catch(() => '0'),
+      // Debug: log tableRows and selector
+      
+      // Optionally log the row's HTML
+      const rowHtml = await page.locator('tr:nth-child(' + (tableRows + 1) + ')').innerHTML().catch(() => 'Row not found');
+      console.log('DEBUG: Row HTML:', rowHtml);
+      let [fullName, adjusted_credit, credit_before, credit_after, total_credit, status, state_at, end_at, out_end_at, errorCodeText] = await Promise.all([
+        page.locator('#user-full-name-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#additional-credit-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#credit-before-cal-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#credit-after-cal-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#total-credit-now-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#charge-start-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#charge-end-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#unplug-time-' + (countRow + 1)).textContent().catch(() => ''),
         page.locator(`tr:nth-child(${errorCodeIndex}) > td:nth-child(16)`).textContent().catch(() => '')
-
       ]);
 
       // Convert string values to numbers with better parsing
@@ -188,11 +190,11 @@ const errorCodeIndex = countPage+1
      //#################################################################################
      // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
     if (status === statusTH[1] || status === statusEN[1]) {
-       if (before - totalCredit !== after && (adjusted_credit===adjusted) ) {
+       if (before - totalCredit !== after ) {
       data.push({
         id: id++,
         name: fullName || 'Unknown',
-        adjustedCredit: adjusted_credit || '0 LAK',
+        adjustedCredit: adjusted_credit || ' ',
         creditBefore: before||0,
         totalCredit: totalCredit||0,
         creditAfter: after||0,
@@ -202,7 +204,7 @@ const errorCodeIndex = countPage+1
         errorCode: errorCodeText || ''
       });
 
-      console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
+      console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
      }
     }
 
@@ -221,7 +223,7 @@ const errorCodeIndex = countPage+1
 
   // Save data to using.json
   try {
-    const filePath = path.join(__dirname, 'output/AllusedsIn'+ startDate + 'v2.json');
+    const filePath = path.join(__dirname, 'output/AllusedsIn'+ startDate + '-' + endDate + 'v1_0.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to using.json`);
     console.log('Data saved:', data);
