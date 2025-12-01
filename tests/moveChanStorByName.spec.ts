@@ -31,8 +31,8 @@ interface UserData {
   errorCode: string;
 }
 const data: UserData[] = [];
-const startDate = '2025-11-27';
-const endDate = '2025-11-27';
+const startDate = '2025-11-30';
+const endDate = '2025-11-30';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 // day == getDate() only dd from startDate
@@ -43,13 +43,10 @@ const endDay = new Date(endDate).getDate();
 test('check customer', async ({ page }) => {
   test.setTimeout(7200000); // 2 hours timeout for processing all records
   await page.goto('https://admin.moveinno.com/');
-  // Expect a title "to contain" a substring.
-  await page.locator('div').filter({ hasText: /^ชื่อผู้ใช้$/ }).click();
-  // await page.getByPlaceholder('ป้อนชื่อผู้ใช้').fill('Evmanager');
-  await page.getByPlaceholder('ป้อนชื่อผู้ใช้').fill('Evlaomanager');
-  await page.getByLabel('รหัสผ่าน').click();
-  // await page.getByPlaceholder('******').fill('1234');
-  await page.getByPlaceholder('******').fill('HQj0[4Ii1Ghj8H2*');
+ await page.locator('#username').click();
+  await page.locator('#username').fill('Evlaomanager');
+  await page.locator('#password').click();
+  await page.locator('#password').fill('HQj0[4Ii1Ghj8H2*');
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
 
 await page.getByRole('link', { name: 'จัดการลูกค้า' }).first().click();  // Use a broader date range that's more likely to have data

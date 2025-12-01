@@ -17,8 +17,8 @@ interface UserData {
 }
 const data: UserData[] = [];
 //yyyy-mm-dd
-const startDate = '2025-11-26';
-const endDate = '2025-11-26';
+const startDate = '2025-11-30';
+const endDate = '2025-11-30';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 
@@ -209,7 +209,7 @@ const errorCodeIndex = countPage+1
     }
 
 
-    console.log(`item is ${items}`);
+    console.log(`item is ${items}/ ${itemsText}`);
       countPage++;
       countRow++;
 
