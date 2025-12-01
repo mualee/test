@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../output/AllusedsIn2025-11-27v2.json');
-const AllusedsIn26_08_2025 = path.join(__dirname, './output/AllusedsIn2025-11-27v2.json');
+const usingPath = path.join(__dirname, '../output/AllusedsIn2025-11-30-2025-11-30v1_0.json');
+const AllusedsIn26_08_2025 = path.join(__dirname, './output/AllusedsIn2025-11-30-2025-11-30v1_0.json');
 // import json from '../output/AllusedsIn26_08_2025.json';
 const datas = AllusedsIn26_08_2025 && fs.existsSync(AllusedsIn26_08_2025) ? JSON.parse(fs.readFileSync(AllusedsIn26_08_2025, 'utf-8')) : [];
 
@@ -30,6 +30,8 @@ interface UserData {
   out_end_at: string;
   errorCode: string;
 }
+
+
 const data: UserData[] = [];
 const startDate = '2025-11-30';
 const endDate = '2025-11-30';
@@ -102,14 +104,25 @@ let countRow = 0;
         let credit_history = '';
 
         do {
+          console.log(`DEBUG: Loop iteration ${i}, lists: ${lists}`);
           const creditText = await page.locator(`#credit-history-${i}`).textContent().catch(() => '0');
-  const dateText = await page.locator(`#date-history-${i}`).textContent().catch(() => '0');
+          const dateText = await page.locator(`#date-history-${i}`).textContent().catch(() => '0');
 
-  credit_history = creditText ?? '0';
+          credit_history = creditText ?? '0';
           date_Topup = dateText ?? '0';
+          console.log(`DEBUG: Raw dateText: "${date_Topup}", creditText: "${credit_history}"`);
+          
           //set date_Topup ===DD/MM/YYY HH:MM
+          const originalDate = date_Topup;
           date_Topup = date_Topup.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/, '$2/$1/$3 $4');
-          } while ((date_Topup > user.state_at && date_Topup < user.out_end_at) || i > lists);
+          console.log(`DEBUG: Converted date from "${originalDate}" to "${date_Topup}"`);
+          console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" > state_at: "${user.state_at}" = ${date_Topup > user.state_at}`);
+          console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" < out_end_at: "${user.out_end_at}" = ${date_Topup < user.out_end_at}`);
+          console.log(`DEBUG: i (${i}) > lists (${lists}) = ${i > lists}`);
+          console.log(`DEBUG: Loop condition result: ${(date_Topup > user.state_at && date_Topup < user.out_end_at) || i > lists}`);
+          
+          i++;
+        } while ((date_Topup > user.state_at && date_Topup < user.out_end_at) && i <= lists);
 
         //convert credit_history to number
         let creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
@@ -148,7 +161,7 @@ let countRow = 0;
       await page.waitForSelector('table', { timeout: 5000 });
 
     } catch (error) {
-      console.error(`Error processing user ${user.name}:`, error.message);
+      console.error(`Error processing user ${user.name}:`, error instanceof Error ? error.message : String(error));
       // Navigate back on error
       await page.goto("https://admin.moveinno.com/move-ev/user-management?page=1");
       await page.waitForSelector('table', { timeout: 5000 });
