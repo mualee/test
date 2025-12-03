@@ -25,6 +25,8 @@ interface UserData {
   creditBefore: number;
   totalCredit: number;
   creditAfter: number;
+  credTopup?: number;
+  creditAfterTrue?: number;
   state_at: string;
   end_at: string;
   out_end_at: string;
@@ -57,6 +59,7 @@ let countRow = 0;
   let countPage = 0;
   let countPages = 1;
   let id = 0;
+  let Topup=false;
   //loop by array json
   for (const user of json) {
     try {
@@ -88,10 +91,12 @@ let countRow = 0;
 
         data.push({
           id: id++,
-          name: user.name || 'Unknown',
+          name: user.name  || 'Unknown',
           creditBefore: user.creditBefore || 0,
           totalCredit: user.totalCredit || 0,
           creditAfter: user.creditAfter || 0,
+           credTopup: 0,
+            creditAfterTrue: user.creditBefore - user.totalCredit || 0,
           state_at: user.state_at || '',
           end_at: user.end_at || '',
           out_end_at: user.out_end_at || '',
@@ -118,40 +123,48 @@ let countRow = 0;
           console.log(`DEBUG: Converted date from "${originalDate}" to "${date_Topup}"`);
           console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" > state_at: "${user.state_at}" = ${date_Topup > user.state_at}`);
           console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" < out_end_at: "${user.out_end_at}" = ${date_Topup < user.out_end_at}`);
-          console.log(`DEBUG: i (${i}) > lists (${lists}) = ${i > lists}`);
-          console.log(`DEBUG: Loop condition result: ${(date_Topup > user.state_at && date_Topup < user.out_end_at) || i > lists}`);
-          
-          i++;
+          console.log(`DEBUG: i (${i}) <= lists (${lists}) = ${i <= lists}`);
+         i++;
+         if (i > lists){
+          credit_history= '0';
+          console.log("Do not see topup histry");
+         }
         } while ((date_Topup > user.state_at && date_Topup < user.out_end_at) && i <= lists);
 
         //convert credit_history to number
         let creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
 
-        if (i > lists) {
+      if ((creditNum + user.creditBefore )- user.totalCredit !== user.creditAfter && i <= lists) {
           data.push({
             id: id++,
             name: user.name || 'Unknown',
             creditBefore: user.creditBefore || 0,
             totalCredit: user.totalCredit || 0,
             creditAfter: user.creditAfter || 0,
+            credTopup:creditNum || 0,
+            creditAfterTrue: (user.creditBefore + creditNum )- user.totalCredit || 0,
             state_at: user.state_at || '',
             end_at: user.end_at || '',
             out_end_at: user.out_end_at || '',
             errorCode: user.errorCode || '-'
           });
-        } else if (creditNum + user.creditBefore - user.totalCredit !== user.creditAfter) {
+        } else if (i>lists){
           data.push({
             id: id++,
             name: user.name || 'Unknown',
             creditBefore: user.creditBefore || 0,
             totalCredit: user.totalCredit || 0,
             creditAfter: user.creditAfter || 0,
+            credTopup:creditNum || 0,
+            creditAfterTrue: (user.creditBefore + creditNum )- user.totalCredit || 0,
             state_at: user.state_at || '',
             end_at: user.end_at || '',
             out_end_at: user.out_end_at || '',
             errorCode: user.errorCode || '-'
           });
-        } else {
+
+        }
+        else {
           console.log(`User ${user.name} has consistent credit data.`);
         }
       }
@@ -170,7 +183,7 @@ let countRow = 0;
 
   // Save data to notTheSame.json
   try {
-    const filePath = path.join(__dirname, 'output/notTheSameAt_15_09_2025.json');
+    const filePath = path.join(__dirname, 'output/notTheSameXXXX.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to notTheSame.json`);
     console.log('Data saved:', data);
