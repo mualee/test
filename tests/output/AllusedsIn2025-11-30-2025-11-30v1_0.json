@@ -47,18 +47,7 @@
     "out_end_at": "30/11/2025 23:41",
     "errorCode": "4001"
   },
-  {
-    "id": 4,
-    "name": "-",
-    "adjustedCredit": "0",
-    "creditBefore": 115808,
-    "totalCredit": 128702,
-    "creditAfter": 187106,
-    "state_at": "30/11/2025 20:37",
-    "end_at": "30/11/2025 22:02",
-    "out_end_at": "30/11/2025 22:02",
-    "errorCode": "-"
-  },
+  
   {
     "id": 5,
     "name": "ພູຜາສິດ ສີພັນທອງ",
@@ -215,7 +204,7 @@
     "out_end_at": "30/11/2025 16:37",
     "errorCode": "-"
   },
- 
+  
   {
     "id": 19,
     "name": "Khammuan Douangamphai",

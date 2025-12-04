@@ -30,6 +30,7 @@ interface UserData {
   state_at: string;
   end_at: string;
   out_end_at: string;
+  topup_at?: string;
   errorCode: string;
 }
 
@@ -79,7 +80,7 @@ let countRow = 0;
       await page.getByRole('button', { name: 'วันที่เริ่มต้น' }).click();
       await page.getByRole('gridcell', { name: startDay.toString() }).first().click();
       await page.getByRole('button', { name: 'วันที่สิ้นสุด' }).click();
-      await page.getByRole('gridcell', { name: endDay.toString() }).last().click();
+      await page.getByRole('gridcell', { name: endDay.toString() }).first().click();
       //timeout 3 sec
       await page.waitForTimeout(3000);
       //get number from id detail-customer-total
@@ -100,6 +101,7 @@ let countRow = 0;
           state_at: user.state_at || '',
           end_at: user.end_at || '',
           out_end_at: user.out_end_at || '',
+          topup_at: 'No Topup',
           errorCode: user.errorCode || '-'
         });
       } else if (lists > 0) {
@@ -107,7 +109,7 @@ let countRow = 0;
         let date_Topup = '';
         let i = 1;
         let credit_history = '';
-
+        let hasTopup = false;
         do {
           console.log(`DEBUG: Loop iteration ${i}, lists: ${lists}`);
           const creditText = await page.locator(`#credit-history-${i}`).textContent().catch(() => '0');
@@ -117,20 +119,25 @@ let countRow = 0;
           date_Topup = dateText ?? '0';
           console.log(`DEBUG: Raw dateText: "${date_Topup}", creditText: "${credit_history}"`);
           
-          //set date_Topup ===DD/MM/YYY HH:MM
+          //Format date_Topup to DD/MM/YYYY HH:MM (remove seconds if present)
           const originalDate = date_Topup;
-          date_Topup = date_Topup.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/, '$2/$1/$3 $4');
-          console.log(`DEBUG: Converted date from "${originalDate}" to "${date_Topup}"`);
+          date_Topup = date_Topup.replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
+          console.log(`DEBUG: date_Topup format: "${originalDate}" => "${date_Topup}"`);
           console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" > state_at: "${user.state_at}" = ${date_Topup > user.state_at}`);
           console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" < out_end_at: "${user.out_end_at}" = ${date_Topup < user.out_end_at}`);
           console.log(`DEBUG: i (${i}) <= lists (${lists}) = ${i <= lists}`);
-         i++;
-         if (i > lists){
+         hasTopup= date_Topup > user.state_at && date_Topup < user.out_end_at;
+        
+    i++;
+
+if (i > lists && !hasTopup){
           credit_history= '0';
+          date_Topup= 'No Topup';
           console.log("Do not see topup histry");
          }
-        } while ((date_Topup > user.state_at && date_Topup < user.out_end_at) && i <= lists);
-
+      
+        } while (!(date_Topup > user.state_at && date_Topup < user.out_end_at) && i <= lists);
+   
         //convert credit_history to number
         let creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
 
@@ -146,6 +153,7 @@ let countRow = 0;
             state_at: user.state_at || '',
             end_at: user.end_at || '',
             out_end_at: user.out_end_at || '',
+            topup_at: date_Topup || 'No Topup',
             errorCode: user.errorCode || '-'
           });
         } else if (i>lists){
@@ -160,6 +168,7 @@ let countRow = 0;
             state_at: user.state_at || '',
             end_at: user.end_at || '',
             out_end_at: user.out_end_at || '',
+            topup_at: date_Topup || 'No Topup',
             errorCode: user.errorCode || '-'
           });
 
