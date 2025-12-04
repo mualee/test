@@ -126,7 +126,7 @@ let countRow = 0;
           console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" > state_at: "${user.state_at}" = ${date_Topup > user.state_at}`);
           console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" < out_end_at: "${user.out_end_at}" = ${date_Topup < user.out_end_at}`);
           console.log(`DEBUG: i (${i}) <= lists (${lists}) = ${i <= lists}`);
-         hasTopup= date_Topup > user.state_at && date_Topup < user.out_end_at;
+         hasTopup= date_Topup >= user.state_at && date_Topup <= user.out_end_at;
         
     i++;
 
@@ -136,7 +136,7 @@ if (i > lists && !hasTopup){
           console.log("Do not see topup histry");
          }
       
-        } while (!(date_Topup > user.state_at && date_Topup < user.out_end_at) && i <= lists);
+        } while (!hasTopup && i <= lists);
    
         //convert credit_history to number
         let creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
