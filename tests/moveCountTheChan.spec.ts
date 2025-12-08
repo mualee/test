@@ -1,0 +1,273 @@
+import { test, expect } from '@playwright/test';
+//using.json
+import fs from 'fs';
+import path from 'path';
+const usingPath = path.join(__dirname, '../output/using.json');
+interface UserData {
+  id: number;
+  name: string;
+  adjustedCredit: string;
+  creditBefore: number;
+  totalCredit: number;
+  creditAfter: number;
+  state_at: string;
+  end_at: string;
+  out_end_at: string;
+  errorCode: string;
+}
+interface CountUser{
+  id: number;
+  name: string;
+  Times: number;
+}
+const countUsers: CountUser[] = [];
+const data: UserData[] = [];
+//yyyy-mm-dd
+const startDate = '2025-12-08';
+const endDate = '2025-12-08';
+const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
+const statusEN = ["CHARGING", "COMPLETED"]
+
+
+// const errorCodeText = ''
+
+test('check customer', async ({ page }) => {
+  test.setTimeout(7200000); // 2 hours timeout for processing all records
+  await page.goto('https://admin.moveinno.com/');
+  // Expect a title "to contain" a substring.
+  await page.locator('#username').click();
+  await page.locator('#username').fill('Evlaomanager');
+  await page.locator('#password').click();
+  await page.locator('#password').fill('HQj0[4Ii1Ghj8H2*');
+  await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
+
+  await page.getByRole('link', { name: 'ประวัติการชาร์จ' }).click();
+  // Use a broader date range that's more likely to have data
+  await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=1&startDate=${startDate}&endDate=${endDate}`);
+let countRow = 0;
+  let countPage = 0;
+  let countPages = 1;
+  let id = 0;
+  let tableRows = 0;
+
+  // Wait for the page to load and check if there's data
+  await page.waitForSelector('table', { timeout: 10000 });
+
+  // Check how many rows are actually in the table
+//loader 2 sec
+  await page.waitForTimeout(4000);
+  const itemsText = await page.locator('#total-charge-history').textContent().catch(() => '0');
+  console.log('Raw items text:', itemsText);
+  let items = Number.parseInt((itemsText || '0').replace(/[^0-9]/g, ''), 10) || 0;
+  console.log('Total items found:', items);
+
+  // If no items found, try to count table rows as fallback
+  if (items === 0) {
+    console.log('No items found with primary selector, trying table row count...');
+
+
+
+  } else if (items > 0) {
+
+   console.log('Items found with primary selector:', items);
+  // Use totalRows instead of hard-coded 200
+  console.log(`Starting loop with ${items} items to process`);
+
+   while (countRow < items) {
+
+    // Check if we need to go to next page (every 50 rows)
+    if (countPage === 50) {
+      countPages++;
+      console.log(`Going to page ${countPages}`);
+      await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`);
+      await page.waitForSelector('table', { timeout: 10000 });
+      countPage = 0; // Reset page counter
+      tableRows=0;
+     }
+
+const errorCodeIndex = countPage+1
+
+
+      console.log(`Processing row ${countRow + 1}...`);
+
+      //wait for the detail page to load
+      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 40000 });
+
+      // Get all required data in parallel for better performance
+      // Debug: log tableRows and selector
+      
+      // Optionally log the row's HTML
+      const rowHtml = await page.locator('tr:nth-child(' + (tableRows + 1) + ')').innerHTML().catch(() => 'Row not found');
+      console.log('DEBUG: Row HTML:', rowHtml);
+      let [fullName, adjusted_credit, credit_before, credit_after, total_credit, status, state_at, end_at, out_end_at, errorCodeText] = await Promise.all([
+        page.locator('#user-full-name-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#additional-credit-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#credit-before-cal-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#credit-after-cal-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#total-credit-now-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#charge-start-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#charge-end-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#unplug-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator(`tr:nth-child(${errorCodeIndex}) > td:nth-child(16)`).textContent().catch(() => '')
+      ]);
+
+      // Convert string values to numbers with better parsing
+      const before = parseInt((credit_before || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const after = parseInt((credit_after || '0').replace(/[^0-9]/g, ''), 10) || 0;
+    const totalCredit = parseInt((total_credit || '0').replace(/[^0-9]/g, ''), 10) || 0;
+ // ###########################################################################
+      // # ທຸກຄົນ
+    //   data.push({
+    //     id: id++,
+    //     name: fullName || 'Unknown',
+    //     creditBefore: before,
+    //     totalCredit: totalCredit,
+    //     creditAfter: after
+    // });
+
+     // console.log(`Row ${countRow + 1}: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+   //#################################################################################
+     // # ທຸກຄົນ ທີ ກຳລັັງສາກ [0]
+     // if (status === statusTH[0] || status === statusEN[0]) {
+    //    data.push({
+    //     id: id++,
+    //     name: fullName || 'Unknown',
+    //     creditBefore: before,
+    //     totalCredit: totalCredit,
+    //     creditAfter: after
+    // });
+    // console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+
+     // }
+     //#######################################################################################
+     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1]
+    // if (status === statusTH[1] || status === statusEN[1]) {
+    //    data.push({
+    //     id: id++,
+    //     name: fullName || 'Unknown',
+    //     creditBefore: before||0,
+    //     totalCredit: totalCredit||0,
+    //     creditAfter: after||0,
+    //     state_at: state_at || '',
+    //     end_at: end_at || '',
+    //     out_end_at: out_end_at || ''
+    // });
+    // console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+
+    // }
+
+    // //# //#################################################################################
+    //  // # ທຸກຄົນ ທີ ເງີນບໍ່ຕົງ
+    // if (before - totalCredit !== after &&  (errorCodeText!=='-' && errorCodeText!=='')) {
+    //   data.push({
+    //   id: id++,
+    //     name: fullName || 'Unknown',
+    //     adjustedCredit: adjusted_credit || '0 LAK',
+    //     creditBefore: before||0,
+    //     totalCredit: totalCredit||0,
+    //     creditAfter: after||0,
+    //     state_at: state_at || '',
+    //     end_at: end_at || '',
+    //     out_end_at: out_end_at || '',
+    //     errorCode: errorCodeText || ''
+    //   });
+
+    //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
+    //  }
+    //# //#################################################################################
+     // # ທຸກຄົນ ທີ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
+    // if (before - totalCredit !== after &&  (errorCodeText!=='-' && errorCodeText!=='') && adjusted_credit!==adjusted) {
+    //   data.push({
+    //   id: id++,
+    //     name: fullName || 'Unknown',
+    //     adjustedCredit: adjusted_credit || '0 LAK',
+    //     creditBefore: before||0,
+    //     totalCredit: totalCredit||0,
+    //     creditAfter: after||0,
+    //     state_at: state_at || '',
+    //     end_at: end_at || '',
+    //     out_end_at: out_end_at || '',
+    //     errorCode: errorCodeText || ''
+    //   });
+
+    //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
+    //  }
+     //#################################################################################
+     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
+    if (status === statusTH[1] || status === statusEN[1]) {
+       
+      data.push({
+        id: id++,
+        name: fullName || 'Unknown',
+        adjustedCredit: adjusted_credit || ' ',
+        creditBefore: before||0,
+        totalCredit: totalCredit||0,
+        creditAfter: after||0,
+        state_at: state_at || '',
+        end_at: end_at || '',
+        out_end_at: out_end_at || '',
+        errorCode: errorCodeText || ''
+      });
+
+      console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
+     
+    }
+
+
+    console.log(`item is ${items}/ ${itemsText}`);
+      countPage++;
+      countRow++;
+
+      // Navigate back with error handling
+
+
+
+  }
+
+  }
+
+// CountUsers logic - Count how many times each user appears
+const userCountMap = new Map<string, number>();
+
+for (const user of data) {
+  const currentCount = userCountMap.get(user.name) || 0;
+  userCountMap.set(user.name, currentCount + 1);
+}
+
+// Convert map to array and assign IDs
+let countId = 0;
+for (const [name, times] of userCountMap.entries()) {
+  countUsers.push({
+    id: countId++,
+    name: name,
+    Times: times
+  });
+}
+
+console.log(`\nUser Count Summary:`);
+console.log(`Total unique users: ${countUsers.length}`);
+console.log(`Total charging records: ${data.length}`);
+
+// Sort by Times (descending) to see most frequent users first
+countUsers.sort((a, b) => b.Times - a.Times);
+
+// Log top 10 users
+console.log(`\nTop 10 most frequent users:`);
+countUsers.slice(0, 10).forEach(user => {
+  console.log(`  ${user.name}: ${user.Times} times`);
+});
+
+  // Save data to using.json
+  try {
+    // const dataFilePath = path.join(__dirname, 'output/Count'+ startDate + '-' + endDate + 'v1_0.json');
+    // fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
+    // console.log(`\nSaved ${data.length} records to Count${startDate}-${endDate}v1_0.json`);
+    
+    const countFilePath = path.join(__dirname, 'output/UserCount'+ startDate + '-' + endDate + '.json');
+    fs.writeFileSync(countFilePath, JSON.stringify(countUsers, null, 2), 'utf8');
+    console.log(`Saved ${countUsers.length} user count records to UserCount${startDate}-${endDate}.json`);
+  } catch (error) {
+    console.error('Error saving files:', error);
+  }
+});
