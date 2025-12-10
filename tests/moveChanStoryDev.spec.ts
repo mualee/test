@@ -17,8 +17,8 @@ interface UserData {
 }
 const data: UserData[] = [];
 //yyyy-mm-dd
-const startDate = '2025-12-08';
-const endDate = '2025-12-08';
+const startDate = '2025-12-10';
+const endDate = '2025-12-10';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 
@@ -190,7 +190,7 @@ const errorCodeIndex = countPage+1
      //#################################################################################
      // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
     if (status === statusTH[1] || status === statusEN[1]) {
-       if (before - totalCredit !== after ) {
+      //  if (before - totalCredit !== after ) {
       data.push({
         id: id++,
         name: fullName || 'Unknown',
@@ -205,7 +205,7 @@ const errorCodeIndex = countPage+1
       });
 
       console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
-     }
+     //}
     }
 
 

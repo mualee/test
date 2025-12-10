@@ -2,21 +2,21 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../output/AllusedsIn2025-12-08-2025-12-08v1_0.json');
-const AllusedsIn26_08_2025 = path.join(__dirname, './output/AllusedsIn2025-12-08-2025-12-08v1_0.json');
-// import json from '../output/AllusedsIn26_08_2025.json';
-const datas = AllusedsIn26_08_2025 && fs.existsSync(AllusedsIn26_08_2025) ? JSON.parse(fs.readFileSync(AllusedsIn26_08_2025, 'utf-8')) : [];
+const usingPath = path.join(__dirname, '../output/notTheSameXXXX1210.json');
+const AllusedsIn10_12_2025 = path.join(__dirname, './output/notTheSameXXXX1210.json');
+// import json from '../output/AllusedsIn10_12_2025.json';
+const datas = AllusedsIn10_12_2025 && fs.existsSync(AllusedsIn10_12_2025) ? JSON.parse(fs.readFileSync(AllusedsIn10_12_2025, 'utf-8')) : [];
 
-console.log('Looking for file at:', AllusedsIn26_08_2025);
-console.log('File exists:', fs.existsSync(AllusedsIn26_08_2025));
+console.log('Looking for file at:', AllusedsIn10_12_2025);
+console.log('File exists:', fs.existsSync(AllusedsIn10_12_2025));
 
 // Only try to read the file if it exists
 let json: UserData[] = [];
-if (fs.existsSync(AllusedsIn26_08_2025)) {
-  json = JSON.parse(fs.readFileSync(AllusedsIn26_08_2025, 'utf-8'));
+if (fs.existsSync(AllusedsIn10_12_2025)) {
+  json = JSON.parse(fs.readFileSync(AllusedsIn10_12_2025, 'utf-8'));
   console.log('Using JSON data:', json);
 } else {
-  console.log('AllusedsIn26_08_2025.json file not found, using empty array');
+  console.log('AllusedsIn10_12_2025.json file not found, using empty array');
 }
 
 
@@ -138,7 +138,7 @@ let countRow = 0;
 
   // Save data to notTheSame.json
   try {
-    const filePath = path.join(__dirname, 'output/notTheSamexxxxV2.json');
+    const filePath = path.join(__dirname, 'output/notTheSameWalletxxxx1210.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to notTheSame.json`);
     console.log('Data saved:', data);
