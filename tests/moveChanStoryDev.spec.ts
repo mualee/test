@@ -190,7 +190,7 @@ const errorCodeIndex = countPage+1
      //#################################################################################
      // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
     if (status === statusTH[1] || status === statusEN[1]) {
-      //  if (before - totalCredit !== after ) {
+       if (before - totalCredit !== after ) {
       data.push({
         id: id++,
         name: fullName || 'Unknown',
@@ -205,7 +205,7 @@ const errorCodeIndex = countPage+1
       });
 
       console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
-     //}
+     }
     }
 
 
@@ -223,7 +223,7 @@ const errorCodeIndex = countPage+1
 
   // Save data to using.json
   try {
-    const filePath = path.join(__dirname, 'output/AllusedsIn'+ startDate + '-' + endDate + 'v1_0.json');
+    const filePath = path.join(__dirname, 'output/AllusedsIn'+ startDate + '-' + endDate + 'v1_1.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to using.json`);
     console.log('Data saved:', data);

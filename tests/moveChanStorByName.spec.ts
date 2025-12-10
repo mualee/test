@@ -2,21 +2,16 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../output/AllusedsIn2025-12-10-2025-12-10v1_0.json');
-const AllusedsIn10_12_2025 = path.join(__dirname, './output/AllusedsIn2025-12-10-2025-12-10v1_0.json');
-// import json from '../output/AllusedsIn10_12_2025.json';
-const datas = AllusedsIn10_12_2025 && fs.existsSync(AllusedsIn10_12_2025) ? JSON.parse(fs.readFileSync(AllusedsIn10_12_2025, 'utf-8')) : [];
+const inputFilePath = path.join(__dirname, './output/AllusedsIn2025-12-10-2025-12-10v1_1.json');
 
-console.log('Looking for file at:', AllusedsIn10_12_2025);
-console.log('File exists:', fs.existsSync(AllusedsIn10_12_2025));
+console.log('Looking for file at:', inputFilePath);
 
-// Only try to read the file if it exists
 let json: UserData[] = [];
-if (fs.existsSync(AllusedsIn10_12_2025)) {
-  json = JSON.parse(fs.readFileSync(AllusedsIn10_12_2025, 'utf-8'));
-  console.log('Using JSON data:', json);
+if (fs.existsSync(inputFilePath)) {
+  json = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
+  console.log(`Loaded ${json.length} records from file`);
 } else {
-  console.log('AllusedsIn10_12_2025.json file not found, using empty array');
+  console.log('Input file not found, using empty array');
 }
 
 interface UserData {
@@ -48,30 +43,23 @@ const endDay = new Date(endDate).getDate();
 test('check customer', async ({ page }) => {
   test.setTimeout(7200000); // 2 hours timeout for processing all records
   await page.goto('https://admin.moveinno.com/');
- await page.locator('#username').click();
   await page.locator('#username').fill('Evlaomanager');
-  await page.locator('#password').click();
   await page.locator('#password').fill('HQj0[4Ii1Ghj8H2*');
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
-
-await page.getByRole('link', { name: 'จัดการลูกค้า' }).first().click();  // Use a broader date range that's more likely to have data
+  await page.getByRole('link', { name: 'จัดการลูกค้า' }).first().click(); 
   await page.goto("https://admin.moveinno.com/move-ev/user-management?page=1");
-let countRow = 0;
-  let countPage = 0;
-  let countPages = 1;
+  await page.waitForSelector('table', { timeout: 50000 });
   let id = 0;
-  let Topup=false;
-  //loop by array json
+  
   for (const user of json) {
     try {
-      console.log(`Processing user: ${user.name}`);
+      console.log(`Processing id ${user.id} user: ${user.name}`);
 
-      // Clear search field and search for user
-      await page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล').clear();
-      await page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล').fill(user.name);
-      await page.waitForTimeout(1000); // Wait for search results
+      const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill(user.name);
+      await page.waitForTimeout(800);
 
-      // Click on the user with exact match
       await page.getByRole('cell', { name: user.name, exact: true }).first().click();
       await page.getByRole('button', { name: 'ประวัติการชำระเงิน' }).click();
 
@@ -81,100 +69,109 @@ let countRow = 0;
       await page.getByRole('gridcell', { name: startDay.toString() }).first().click();
       await page.getByRole('button', { name: 'วันที่สิ้นสุด' }).click();
       await page.getByRole('gridcell', { name: endDay.toString() }).first().click();
-      //timeout 3 sec
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(2000);
       //get number from id detail-customer-total
       const listtext = await page.locator('#detail-customer-total').textContent().catch(() => '0');
       const lists = Number.parseFloat((listtext || '0').replace(/[^0-9.-]/g, '')) || 0;
 
-      if (lists === 0) {
-        console.log(`No transaction history for user: ${user.name} at ${user.state_at} until ${user.out_end_at}`);
+      const createUserRecord = (creditNum: number, topupDate: string) => ({
+        id: id++,
+        name: user.name || 'Unknown',
+        creditBefore: user.creditBefore || 0,
+        totalCredit: user.totalCredit || 0,
+        creditAfter: user.creditAfter || 0,
+        credTopup: creditNum,
+        creditAfterTrue: (user.creditBefore + creditNum) - user.totalCredit,
+        state_at: user.state_at || '',
+        end_at: user.end_at || '',
+        out_end_at: user.out_end_at || '',
+        topup_at: topupDate,
+        errorCode: user.errorCode || '-'
+      });
 
-        data.push({
-          id: id++,
-          name: user.name  || 'Unknown',
-          creditBefore: user.creditBefore || 0,
-          totalCredit: user.totalCredit || 0,
-          creditAfter: user.creditAfter || 0,
-           credTopup: 0,
-            creditAfterTrue: user.creditBefore - user.totalCredit || 0,
-          state_at: user.state_at || '',
-          end_at: user.end_at || '',
-          out_end_at: user.out_end_at || '',
-          topup_at: 'No Topup',
-          errorCode: user.errorCode || '-'
-        });
-      } else if (lists > 0) {
+      if (lists === 0) {
+        console.log(`No transaction history for user: ${user.name}`);
+        data.push(createUserRecord(0, 'No Topup'));
+      } 
+      else if (lists > 0 && lists < 2) {
+        console.log(`Transaction history found for user: ${user.name}`);
+        let date_Topup = '';
+        let i = 1;
+        let credit_history = '';
+        let hasTopup = false;
+        
+          const [creditText, dateText] = await Promise.all([
+            page.locator(`#credit-history-${i}`).textContent().catch(() => '0'),
+            page.locator(`#date-history-${i}`).textContent().catch(() => '0')
+          ]);
+
+          credit_history = creditText ?? '0';
+          date_Topup = (dateText ?? '0').replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
+          
+          hasTopup = date_Topup >= user.state_at && date_Topup <= user.out_end_at;
+          const creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
+
+
+          if ( !hasTopup) {
+            credit_history = '0';
+            date_Topup = 'No Topup';
+            console.log(`No topup found for ${user.name}`);
+          data.push(createUserRecord(0,  'No Topup'));
+          
+          }else {
+
+        const creditAfterTrue = (user.creditBefore + creditNum) - user.totalCredit;
+        const hasMismatch = creditAfterTrue === user.creditAfter;
+
+        if (!hasMismatch) {
+          data.push(createUserRecord(creditNum || 0, date_Topup || 'No Topup'));
+         
+            console.log(`Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`);
+         
+        } else {
+          console.log(`${user.name}: credit consistent`);
+        }
+          }
+       
+   
+      
+      }
+      else if (lists > 1) {
         console.log(`Transaction history found for user: ${user.name}`);
         let date_Topup = '';
         let i = 1;
         let credit_history = '';
         let hasTopup = false;
         do {
-          console.log(`DEBUG: Loop iteration ${i}, lists: ${lists}`);
-          const creditText = await page.locator(`#credit-history-${i}`).textContent().catch(() => '0');
-          const dateText = await page.locator(`#date-history-${i}`).textContent().catch(() => '0');
+          const [creditText, dateText] = await Promise.all([
+            page.locator(`#credit-history-${i}`).textContent().catch(() => '0'),
+            page.locator(`#date-history-${i}`).textContent().catch(() => '0')
+          ]);
 
           credit_history = creditText ?? '0';
-          date_Topup = dateText ?? '0';
-          console.log(`DEBUG: Raw dateText: "${date_Topup}", creditText: "${credit_history}"`);
+          date_Topup = (dateText ?? '0').replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
           
-          //Format date_Topup to DD/MM/YYYY HH:MM (remove seconds if present)
-          const originalDate = date_Topup;
-          date_Topup = date_Topup.replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
-          console.log(`DEBUG: date_Topup format: "${originalDate}" => "${date_Topup}"`);
-          console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" > state_at: "${user.state_at}" = ${date_Topup > user.state_at}`);
-          console.log(`DEBUG: Comparing - date_Topup: "${date_Topup}" < out_end_at: "${user.out_end_at}" = ${date_Topup < user.out_end_at}`);
-          console.log(`DEBUG: i (${i}) <= lists (${lists}) = ${i <= lists}`);
-         hasTopup= date_Topup >= user.state_at && date_Topup <= user.out_end_at;
-        
-    i++;
+          hasTopup = date_Topup >= user.state_at && date_Topup <= user.out_end_at;
+          i++;
 
-if (i > lists && !hasTopup){
-          credit_history= '0';
-          date_Topup= 'No Topup';
-          console.log("Do not see topup histry");
-         }
-      
+          if (i > lists && !hasTopup) {
+            credit_history = '0';
+            date_Topup = 'No Topup';
+            console.log(`No topup found for ${user.name}`);
+          }
         } while (!hasTopup && i <= lists);
    
-        //convert credit_history to number
-        let creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
+        const creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
+        const creditAfterTrue = (user.creditBefore + creditNum) - user.totalCredit;
+        const hasMismatch = creditAfterTrue === user.creditAfter;
 
-      if ((creditNum + user.creditBefore )- user.totalCredit !== user.creditAfter && i <= lists) {
-          data.push({
-            id: id++,
-            name: user.name || 'Unknown',
-            creditBefore: user.creditBefore || 0,
-            totalCredit: user.totalCredit || 0,
-            creditAfter: user.creditAfter || 0,
-            credTopup:creditNum || 0,
-            creditAfterTrue: (user.creditBefore + creditNum )- user.totalCredit || 0,
-            state_at: user.state_at || '',
-            end_at: user.end_at || '',
-            out_end_at: user.out_end_at || '',
-            topup_at: date_Topup || 'No Topup',
-            errorCode: user.errorCode || '-'
-          });
-        } else if (i>lists){
-          data.push({
-            id: id++,
-            name: user.name || 'Unknown',
-            creditBefore: user.creditBefore || 0,
-            totalCredit: user.totalCredit || 0,
-            creditAfter: user.creditAfter || 0,
-            credTopup:creditNum || 0,
-            creditAfterTrue: (user.creditBefore + creditNum )- user.totalCredit || 0,
-            state_at: user.state_at || '',
-            end_at: user.end_at || '',
-            out_end_at: user.out_end_at || '',
-            topup_at: date_Topup || 'No Topup',
-            errorCode: user.errorCode || '-'
-          });
-
-        }
-        else {
-          console.log(`User ${user.name} has consistent credit data.`);
+        if (!hasMismatch || i > lists) {
+          data.push(createUserRecord(creditNum, date_Topup || 'No Topup'));
+          if (!hasMismatch) {
+            console.log(`Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`);
+          }
+        } else {
+          console.log(`${user.name}: credit consistent`);
         }
       }
 
@@ -190,13 +187,13 @@ if (i > lists && !hasTopup){
     }
   }
 
-  // Save data to notTheSame.json
   try {
-    const filePath = path.join(__dirname, 'output/notTheSameXXXX1210.json');
+    const now = new Date();
+    const timestamp = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+    const filePath = path.join(__dirname, `output/creditCheck_${startDate}_${timestamp}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    console.log(`Saved ${data.length} records to notTheSame.json`);
-    console.log('Data saved:', data);
+    console.log(`\n✓ Saved ${data.length} records to ${path.basename(filePath)}`);
   } catch (error) {
-    console.error('Error saving to notTheSame.json:', error);
+    console.error('Error saving file:', error);
   }
 });

@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../output/notTheSameXXXX1210.json');
-const AllusedsIn10_12_2025 = path.join(__dirname, './output/notTheSameXXXX1210.json');
+const usingPath = path.join(__dirname, '../output/AllusedsIn2025-12-10-2025-12-10v1_0.json');
+const AllusedsIn10_12_2025 = path.join(__dirname, './output/AllusedsIn2025-12-10-2025-12-10v1_0.json');
 // import json from '../output/AllusedsIn10_12_2025.json';
 const datas = AllusedsIn10_12_2025 && fs.existsSync(AllusedsIn10_12_2025) ? JSON.parse(fs.readFileSync(AllusedsIn10_12_2025, 'utf-8')) : [];
 
@@ -96,7 +96,7 @@ let countRow = 0;
   //loop by array json_to_check_credit (filtered for latest records only)
   for (const user of json_to_check_credit) {
     try {
-      console.log(`Processing user: ${user.name} (latest out_end_at: ${user.out_end_at})`);
+      console.log(`Processing id ${user.id} user: ${user.name} (latest out_end_at: ${user.out_end_at})`);
 
       // Clear search field and search for user
       await page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล').clear();
@@ -138,7 +138,7 @@ let countRow = 0;
 
   // Save data to notTheSame.json
   try {
-    const filePath = path.join(__dirname, 'output/notTheSameWalletxxxx1210.json');
+    const filePath = path.join(__dirname, 'output/notTheSameWalletxxxxV1_0_4.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to notTheSame.json`);
     console.log('Data saved:', data);
