@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const inputFilePath = path.join(__dirname, './output/AllUsedsIn2025-12-13-2025-12-13Test_at13-48-16.json');
+const inputFilePath = path.join(__dirname, './output/AllUsedsIn2025-12-13-2025-12-13Test_at17-07-32.json');
 
 console.log('Looking for file at:', inputFilePath);
 
@@ -75,122 +75,69 @@ test('check customer', async ({ page }) => {
       await page.getByRole('button', { name: 'วันที่สิ้นสุด' }).click();
       await page.getByRole('gridcell', { name: endDay.toString() }).first().click();
       await page.waitForTimeout(2000);
-      //get number from id detail-customer-total
       const listtext = await page.locator('#detail-customer-total').textContent().catch(() => 'can not Loading...');
       if (listtext === 'can not Loading...') {
         console.log(`No see history for user: ${user.name}`);
-      }else{
+        continue;
+      }
+      
       const lists = Number.parseFloat((listtext || '0').replace(/[^0-9.-]/g, '')) || 0;
       
-    const createUserRecord = (creditNum: number, topupDate: string) => ({
+      const createUserRecord = (creditNum: number, topupDate: string) => ({
         id: id++,
-        name: user.name || 'Unknown',
-        creditBefore: user.creditBefore || 0,
-        totalCredit: user.totalCredit || 0,
-        creditAfter: user.creditAfter || 0,
+        name: user.name,
+        creditBefore: user.creditBefore,
+        totalCredit: user.totalCredit,
+        creditAfter: user.creditAfter,
         credTopup: creditNum,
         creditAfterTrue: (user.creditBefore + creditNum) - user.totalCredit,
-        state_at: user.state_at || '',
-        end_at: user.end_at || '',
-        out_end_at: user.out_end_at || '',
+        state_at: user.state_at,
+        end_at: user.end_at,
+        out_end_at: user.out_end_at,
         topup_at: topupDate,
-        errorCode: user.errorCode || '-'
+        errorCode: user.errorCode
       });
 
       if (lists === 0) {
         console.log(`No transaction history for user: ${user.name}`);
         data.push(createUserRecord(0, 'No Topup'));
-      } 
-      else if (lists > 0 && lists < 2) {
+      } else {
         console.log(`Transaction history found for user: ${user.name}`);
-        let date_Topup = '';
-        let i = 1;
-        let credit_history = '';
+        let credit_history = '0';
+        let date_Topup = 'No Topup';
         let hasTopup = false;
-        
+
+        for (let i = 1; i <= lists && !hasTopup; i++) {
           const [creditText, dateText] = await Promise.all([
             page.locator(`#credit-history-${i}`).textContent().catch(() => '0'),
             page.locator(`#date-history-${i}`).textContent().catch(() => '0')
           ]);
 
           credit_history = creditText ?? '0';
-          date_Topup = (dateText ?? '0').replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
+          const rawDate = dateText ?? '0';
+          date_Topup = rawDate.replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
           
           hasTopup = date_Topup >= user.state_at && date_Topup <= user.out_end_at;
-          const creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
-
-
-          if ( !hasTopup) {
-            credit_history = '0';
-            date_Topup = 'No Topup';
-            console.log(`No topup found for ${user.name}`);
-          data.push(createUserRecord(0,  'No Topup'));
-          
-          }else {
-
-        const creditAfterTrue = (user.creditBefore + creditNum) - user.totalCredit;
-        const hasMismatch = creditAfterTrue === user.creditAfter;
-
-        if (!hasMismatch) {
-          data.push(createUserRecord(creditNum || 0, date_Topup || 'No Topup'));
-         
-            console.log(`Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`);
-         
-        } else {
-          console.log(`${user.name}: credit consistent`);
         }
-          }
-       
-   
-      
-      }
-      else if (lists > 1) {
-        console.log(`Transaction history found for user: ${user.name}`);
-        let date_Topup = '';
-        let i = 1;
-        let credit_history = '';
-        let hasTopup = false;
-        do {
-          const [creditText, dateText] = await Promise.all([
-            page.locator(`#credit-history-${i}`).textContent().catch(() => '0'),
-            page.locator(`#date-history-${i}`).textContent().catch(() => '0')
-          ]);
 
-          credit_history = creditText ?? '0';
-          date_Topup = (dateText ?? '0').replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
-          
-          hasTopup = date_Topup >= user.state_at && date_Topup <= user.out_end_at;
-          i++;
-
-          if (i > lists && !hasTopup) {
-            credit_history = '0';
-            date_Topup = 'No Topup';
-            console.log(`No topup found for ${user.name}`);
-          }
-        } while (!hasTopup && i <= lists);
-   
-        const creditNum = Number.parseFloat((credit_history || '0').replace(/[^0-9.-]/g, '')) || 0;
-        const creditAfterTrue = (user.creditBefore + creditNum) - user.totalCredit;
-        const hasMismatch = creditAfterTrue === user.creditAfter;
-
-        if (!hasMismatch || i > lists) {
-          data.push(createUserRecord(creditNum, date_Topup || 'No Topup'));
-          if (!hasMismatch) {
-            console.log(`Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`);
-          }
+        if (!hasTopup) {
+          console.log(`No topup found for ${user.name}`);
+          data.push(createUserRecord(0, 'No Topup'));
         } else {
-          console.log(`${user.name}: credit consistent`);
+          const creditNum = Number.parseFloat(credit_history.replace(/[^0-9.-]/g, '')) || 0;
+          const creditAfterTrue = (user.creditBefore + creditNum) - user.totalCredit;
+
+          if (creditAfterTrue !== user.creditAfter) {
+            data.push(createUserRecord(creditNum, date_Topup));
+            console.log(`Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`);
+          } else {
+            console.log(`${user.name}: credit consistent`);
+          }
         }
       }
 
-      // Navigate back to user management
       await page.goto("https://admin.moveinno.com/move-ev/user-management?page=1");
       await page.waitForSelector('table', { timeout: 5000 });
-
-    
-    
-    
-    }
       
     } catch (error) {
       console.error(`Error processing user ${user.name}:`, error instanceof Error ? error.message : String(error));
