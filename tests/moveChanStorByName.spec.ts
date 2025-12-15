@@ -2,18 +2,23 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const inputFilePath = path.join(__dirname, './output/AllusedsIn2025-12-10-2025-12-10v1_1.json');
+const inputFilePath = path.join(__dirname, './output/AllUsedsIn2025-12-13-2025-12-13Test_at13-48-16.json');
 
 console.log('Looking for file at:', inputFilePath);
 
 let json: UserData[] = [];
 if (fs.existsSync(inputFilePath)) {
   json = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
+  // Remove trailing spaces from user names
+  json = json.map(user => ({
+    ...user,
+    name: user.name.trimEnd()
+  }));
   console.log(`Loaded ${json.length} records from file`);
 } else {
   console.log('Input file not found, using empty array');
 }
-
+//edit json data user.name 
 interface UserData {
   id: number;
   name: string;
@@ -31,8 +36,8 @@ interface UserData {
 
 
 const data: UserData[] = [];
-const startDate = '2025-12-10';
-const endDate = '2025-12-10';
+const startDate = '2025-12-13';
+const endDate = '2025-12-13';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 // day == getDate() only dd from startDate
@@ -71,10 +76,13 @@ test('check customer', async ({ page }) => {
       await page.getByRole('gridcell', { name: endDay.toString() }).first().click();
       await page.waitForTimeout(2000);
       //get number from id detail-customer-total
-      const listtext = await page.locator('#detail-customer-total').textContent().catch(() => '0');
+      const listtext = await page.locator('#detail-customer-total').textContent().catch(() => 'can not Loading...');
+      if (listtext === 'can not Loading...') {
+        console.log(`No see history for user: ${user.name}`);
+      }else{
       const lists = Number.parseFloat((listtext || '0').replace(/[^0-9.-]/g, '')) || 0;
-
-      const createUserRecord = (creditNum: number, topupDate: string) => ({
+      
+    const createUserRecord = (creditNum: number, topupDate: string) => ({
         id: id++,
         name: user.name || 'Unknown',
         creditBefore: user.creditBefore || 0,
@@ -179,6 +187,11 @@ test('check customer', async ({ page }) => {
       await page.goto("https://admin.moveinno.com/move-ev/user-management?page=1");
       await page.waitForSelector('table', { timeout: 5000 });
 
+    
+    
+    
+    }
+      
     } catch (error) {
       console.error(`Error processing user ${user.name}:`, error instanceof Error ? error.message : String(error));
       // Navigate back on error
