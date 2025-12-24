@@ -6,6 +6,8 @@ const usingPath = path.join(__dirname, '../output/using.json');
 interface UserData {
   id: number;
   name: string;
+  mail?: string;
+  phone?: string;
   adjustedCredit: string;
   creditBefore: number;
   totalCredit: number;
@@ -15,10 +17,30 @@ interface UserData {
   out_end_at: string;
   errorCode: string;
 }
+
+// Function to parse contact and determine if it's phone or email
+function parseContact(contact: string): { mail?: string; phone?: string } {
+  const trimmedContact = contact.trim();
+  
+  // Check if it's an email (contains @)
+  if (trimmedContact.includes('@')) {
+    return { mail: trimmedContact };
+  }
+  
+  // Check if it's a phone number (only digits, possibly with spaces/dashes)
+  const digitsOnly = trimmedContact.replace(/[\s-]/g, '');
+  if (/^\d+$/.test(digitsOnly)) {
+    return { phone: digitsOnly };
+  }
+  
+  // Default to empty object if neither
+  return {};
+}
+
 const data: UserData[] = [];
 //yyyy-mm-dd
-const startDate = '2025-12-13';
-const endDate = '2025-12-13';
+const startDate = '2025-12-23';
+const endDate = '2025-12-23';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 
@@ -85,19 +107,20 @@ const errorCodeIndex = countPage+1
       console.log(`Processing row ${countRow + 1}...`);
 
       //wait for the detail page to load
-      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 40000 });
+      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 400 });
 
       // Get all required data in parallel for better performance
       // Debug: log tableRows and selector
       
       // Optionally log the row's HTML
-      const rowHtml = await page.locator('tr:nth-child(' + (tableRows + 1) + ')').innerHTML().catch(() => 'Row not found');
-      console.log('DEBUG: Row HTML:', rowHtml);
-      let [fullName, adjusted_credit, credit_before, credit_after, total_credit, status, state_at, end_at, out_end_at, errorCodeText] = await Promise.all([
+      // const rowHtml = await page.locator('tr:nth-child(' + (tableRows + 1) + ')').innerHTML().catch(() => 'Row not found');
+      // console.log('DEBUG: Row HTML:', rowHtml);
+      let [fullName, adjusted_credit, credit_before, credit_after,contact, total_credit, status, state_at, end_at, out_end_at, errorCodeText] = await Promise.all([
         page.locator('#user-full-name-' + (countRow + 1)).textContent().catch(() => ''),
         page.locator('#additional-credit-' + (countRow + 1)).textContent().catch(() => ''),
         page.locator('#credit-before-cal-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#credit-after-cal-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#user-contact-field-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#total-credit-now-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
         page.locator('#charge-start-time-' + (countRow + 1)).textContent().catch(() => ''),
@@ -110,7 +133,13 @@ const errorCodeIndex = countPage+1
       const before = parseInt((credit_before || '0').replace(/[^0-9]/g, ''), 10) || 0;
       const after = parseInt((credit_after || '0').replace(/[^0-9]/g, ''), 10) || 0;
     const totalCredit = parseInt((total_credit || '0').replace(/[^0-9]/g, ''), 10) || 0;
- // ###########################################################################
+ 
+      // Convert contact to mail and phone from contact
+      const contactInfo = parseContact(contact || '');
+      
+ 
+ 
+    // ###########################################################################
       // # ທຸກຄົນ
     //   data.push({
     //     id: id++,
@@ -194,6 +223,7 @@ const errorCodeIndex = countPage+1
       data.push({
         id: id++,
         name: fullName || 'Unknown',
+        ...contactInfo,
         adjustedCredit: adjusted_credit || ' ',
         creditBefore: before||0,
         totalCredit: totalCredit||0,
@@ -229,7 +259,7 @@ const errorCodeIndex = countPage+1
     const filePath = path.join(__dirname, 'output/AllUsedsIn'+ startDate + '-' + endDate + 'Test_at'+ timestamp +'.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to using.json`);
-    console.log('Data saved:', data);
+    console.log('Data saved:', data);    
   } catch (error) {
     console.error('Error saving to using.json:', error);
   }
