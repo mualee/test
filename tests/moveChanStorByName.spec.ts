@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const inputFilePath = path.join(__dirname, './output/AllUsedsIn2025-12-13-2025-12-13Test_at17-07-32.json');
+const inputFilePath = path.join(__dirname, './output/AllUsedsIn2025-12-23-2025-12-23Test_at10-38-31.json');
 
 console.log('Looking for file at:', inputFilePath);
 
@@ -22,6 +22,8 @@ if (fs.existsSync(inputFilePath)) {
 interface UserData {
   id: number;
   name: string;
+  phone?: string;
+  mail?: string;
   creditBefore: number;
   totalCredit: number;
   creditAfter: number;
@@ -36,8 +38,8 @@ interface UserData {
 
 
 const data: UserData[] = [];
-const startDate = '2025-12-13';
-const endDate = '2025-12-13';
+const startDate = '2025-12-23';
+const endDate = '2025-12-23';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 // day == getDate() only dd from startDate
@@ -58,12 +60,88 @@ test('check customer', async ({ page }) => {
   
   for (const user of json) {
     try {
+      
       console.log(`Processing id ${user.id} user: ${user.name}`);
-
-      const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      if (user.name && (user.name !== '-' && user.name !== '_')) {
+        const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
       await searchBox.clear();
       await searchBox.fill(user.name);
+      await page.waitForTimeout(3000);
+      // ກວດຊື່ຄືກັນ
+      const itemsLocator = page.locator('xpath=//*[@id="root"]/div/main/div[2]/div/div[2]/div[2]/div[1]/div[1]');
+      await itemsLocator.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        console.log('Items count element not visible');
+      });
+      const itemsText = await itemsLocator.textContent().catch(() => {
+        console.log('Failed to get items text, using 0');
+        return '0';
+      });
+      console.log('Raw items text:', itemsText);
+      let items = Number.parseInt((itemsText || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+      console.log('Total items found:', items);
+        if (items >1) {
+          if (user.phone) {
+        const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
+      await searchBoxPhone.clear();
+      await searchBoxPhone.fill(user.phone);
       await page.waitForTimeout(800);
+      }else  if (user.mail){
+      const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
+      await searchBoxMail.clear();
+      await searchBoxMail.fill(user.mail);
+      await page.waitForTimeout(800);
+      }
+        }else if (items === 0) {
+          if (user.phone) {
+        const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
+      await searchBoxPhone.clear();
+      await searchBoxPhone.fill(user.phone);
+      await page.waitForTimeout(800);
+      }else  if (user.mail){
+      const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
+      await searchBoxMail.clear();
+      await searchBoxMail.fill(user.mail);
+      await page.waitForTimeout(800);
+      }
+        }
+
+      } else if (!user.name || (user.name==='-' || user.name==='_')) {
+        if (user.phone) {
+        const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
+      await searchBoxPhone.clear();
+      await searchBoxPhone.fill(user.phone);
+      await page.waitForTimeout(800);
+      }else  if (user.mail){
+      const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
+      await searchBoxMail.clear();
+      await searchBoxMail.fill(user.mail);
+      await page.waitForTimeout(800);
+      }
+      }
+
+      
+      
+      
 
       await page.getByRole('cell', { name: user.name, exact: true }).first().click();
       await page.getByRole('button', { name: 'ประวัติการชำระเงิน' }).click();

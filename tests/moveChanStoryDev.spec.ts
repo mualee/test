@@ -39,8 +39,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 
 const data: UserData[] = [];
 //yyyy-mm-dd
-const startDate = '2025-12-23';
-const endDate = '2025-12-23';
+const startDate = '2025-12-19';
+const endDate = '2025-12-19';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 
@@ -121,7 +121,7 @@ const errorCodeIndex = countPage+1
         page.locator('#credit-before-cal-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#credit-after-cal-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#user-contact-field-' + (countRow + 1)).textContent().catch(() => '0'),
-        page.locator('#total-credit-now-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#total-credit-' + (countRow + 1)).textContent().catch(() => '0'),
         page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
         page.locator('#charge-start-time-' + (countRow + 1)).textContent().catch(() => ''),
         page.locator('#charge-end-time-' + (countRow + 1)).textContent().catch(() => ''),
@@ -130,9 +130,9 @@ const errorCodeIndex = countPage+1
       ]);
 
       // Convert string values to numbers with better parsing
-      const before = parseInt((credit_before || '0').replace(/[^0-9]/g, ''), 10) || 0;
-      const after = parseInt((credit_after || '0').replace(/[^0-9]/g, ''), 10) || 0;
-    const totalCredit = parseInt((total_credit || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const before = parseInt((credit_before || '0').replace(/[^0-9-]/g, ''), 10) || 0;
+      const after = parseInt((credit_after || '0').replace(/[^0-9-]/g, ''), 10) || 0;
+    const totalCredit = parseInt((total_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
  
       // Convert contact to mail and phone from contact
       const contactInfo = parseContact(contact || '');
