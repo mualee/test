@@ -1,276 +1,102 @@
 import { test, expect } from '@playwright/test';
-//using.json
-import fs from 'fs';
-import path from 'path';
-const usingPath = path.join(__dirname, '../output/using.json');
-interface UserData {
-  id: number;
-  name: string;
-  mail?: string;
-  phone?: string;
-  adjustedCredit: string;
-  creditBefore: number;
-  totalCredit: number;
-  creditAfter: number;
-  state_at: string;
-  end_at: string;
-  out_end_at: string;
-  errorCode: string;
-}
 
-// Function to parse contact and determine if it's phone or email
-function parseContact(contact: string): { mail?: string; phone?: string } {
-  const trimmedContact = contact.trim();
+// Test constants
+const BASE_URL = 'http://move-admin-dev-team.s3-website-ap-southeast-1.amazonaws.com';
+const CREDENTIALS = {
+  username: 'SuperAdmin',
+  password: '123456'
+};
+const TEST_TIMEOUT = 7200000; // 2 hours
+const stationID=['6937eaa7125d60c54bec726d', '69368da6af15e13b1e1de47d','693656f2995611af3d8c5762','69294cc6c863566b7bb4d21f','691a994e6809cb889fc73b9e','6879d28bac60a8cb2582b680','686b461d24f0bfcaa9c6a718','686b3e7024f0bfcaa9c6a5b6','686b3c2624f0bfcaa9c6a4f9','686752290866823bc4ab8772','6867488c1da3c3ed57e7c8a0','683ec1c276ad9da46d655117','683e693badcce7c6c2e8932d','682ec9f5be720ab7146519b1','682d979cbe720ab71464ec31','682d9765be720ab71464ec0c','67e5053501345208e094280f','67e0467ad31429e3f823586f','67dcccdb0183899e2c139cfc','67dbe62a0183899e2c138feb','67da3302fb94ca9a307e401c'];
+const indata =['01/05/2026','12/22/2025','11/22/2025','10/22/2025','9/22/2025','8/22/2025','7/22/2025','6/22/2025','5/22/2025','4/22/2025','3/22/2025','2/22/2025','1/22/2025','12/22/2024','11/22/2024','10/22/2024','9/22/2024','8/22/2024','7/22/2024','6/22/2024','5/22/2024','4/22/2024','3/22/2024','2/22/2024','1/22/2024'];
+const moneyType =['LAK','THB','USD'];
+const payFor=['ดู Netfix เดือนก่อนน๊','ຄ່ານ້ຳປະປາ ປີ 2025 v2','ຄ່ານ້ຳ 2030','Liverpool 7-0 Man United (Mar 5, 2023)','tester','ຄ່າໄຟ']
+
+
+test('should add new expense successfully', async ({ page }) => {
+  test.setTimeout(TEST_TIMEOUT);
   
-  // Check if it's an email (contains @)
-  if (trimmedContact.includes('@')) {
-    return { mail: trimmedContact };
-  }
-  
-  // Check if it's a phone number (only digits, possibly with spaces/dashes)
-  const digitsOnly = trimmedContact.replace(/[\s-]/g, '');
-  if (/^\d+$/.test(digitsOnly)) {
-    return { phone: digitsOnly };
-  }
-  
-  // Default to empty object if neither
-  return {};
-}
-
-const data: UserData[] = [];
-//yyyy-mm-dd
-const startDate = '2025-12-29';
-const endDate = '2025-12-29';
-const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
-const statusEN = ["CHARGING", "COMPLETED"]
-
-
-// const errorCodeText = ''
-
-test('check customer', async ({ page }) => {
-  test.setTimeout(7200000); // 2 hours timeout for processing all records
-  await page.goto('https://admin.moveinno.com/');
-  // Expect a title "to contain" a substring.
-  await page.locator('#username').click();
-  await page.locator('#username').fill('Evlaomanager');
-  await page.locator('#password').click();
-  await page.locator('#password').fill('HQj0[4Ii1Ghj8H2*');
+  // Login
+  await page.goto(BASE_URL);
+  await page.locator('#username').fill(CREDENTIALS.username);
+  await page.locator('#password').fill(CREDENTIALS.password);
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
-
-  await page.getByRole('link', { name: 'ประวัติการชาร์จ' }).click();
-  // Use a broader date range that's more likely to have data
-  await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=1&startDate=${startDate}&endDate=${endDate}`);
-let countRow = 0;
-  let countPage = 0;
-  let countPages = 1;
-  let id = 0;
-  let tableRows = 0;
-
-  // Wait for the page to load and check if there's data
-  await page.waitForSelector('table', { timeout: 10000 });
-
-  // Check how many rows are actually in the table
-//loader 2 sec
-  await page.waitForTimeout(4000);
-  const itemsText = await page.locator('#total-charge-history').textContent().catch(() => '0');
-  console.log('Raw items text:', itemsText);
-  let items = Number.parseInt((itemsText || '0').replace(/[^0-9]/g, ''), 10) || 0;
-  console.log('Total items found:', items);
-
-  // If no items found, try to count table rows as fallback
-  if (items === 0) {
-    console.log('No items found with primary selector, trying table row count...');
-
-
-
-  } else if (items > 0) {
-
-   console.log('Items found with primary selector:', items);
-  // Use totalRows instead of hard-coded 200
-  console.log(`Starting loop with ${items} items to process`);
-
-   while (countRow < items) {
-
-    // Check if we need to go to next page (every 50 rows)
-    if (countPage === 50) {
-      countPages++;
-      console.log(`Going to page ${countPages}`);
-      await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`);
-      await page.waitForSelector('table', { timeout: 10000 });
-      countPage = 0; // Reset page counter
-      tableRows=0;
-     }
-
-const errorCodeIndex = countPage+1
-
-
-      console.log(`Processing row ${countRow + 1}...`);
-
-      //wait for the detail page to load
-      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 400 });
-
-      // Get all required data in parallel for better performance
-      // Debug: log tableRows and selector
-      
-      // Optionally log the row's HTML
-      // const rowHtml = await page.locator('tr:nth-child(' + (tableRows + 1) + ')').innerHTML().catch(() => 'Row not found');
-      // console.log('DEBUG: Row HTML:', rowHtml);
-      let [fullName, adjusted_credit, credit_before, credit_after,contact, total_credit, status, state_at, end_at, out_end_at, errorCodeText] = await Promise.all([
-        page.locator('#user-full-name-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#additional-credit-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#credit-before-cal-' + (countRow + 1)).textContent().catch(() => '0'),
-        page.locator('#credit-after-cal-' + (countRow + 1)).textContent().catch(() => '0'),
-        page.locator('#user-contact-field-' + (countRow + 1)).textContent().catch(() => '0'),
-        page.locator('#total-credit-' + (countRow + 1)).textContent().catch(() => '0'),
-        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#charge-start-time-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#charge-end-time-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator('#unplug-time-' + (countRow + 1)).textContent().catch(() => ''),
-        page.locator(`tr:nth-child(${errorCodeIndex}) > td:nth-child(16)`).textContent().catch(() => '')
-      ]);
-
-      // Convert string values to numbers with better parsing
-      const adjusted = parseInt((adjusted_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
-      const before = parseInt((credit_before || '0').replace(/[^0-9-]/g, ''), 10) || 0;
-      const after = parseInt((credit_after || '0').replace(/[^0-9-]/g, ''), 10) || 0;
-    const totalCredit = parseInt((total_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
-      let somethingError = adjusted === 0 && totalCredit === 0 && after === 0;
-      // Convert contact to mail and phone from contact
-      const contactInfo = parseContact(contact || '');
-      
- 
- 
-    // ###########################################################################
-      // # ທຸກຄົນ
-    //   if (!somethingError){
-    //         data.push({
-    //    id: id++,
-    //     name: fullName || 'Unknown',
-    //     ...contactInfo,
-    //     adjustedCredit: adjusted_credit || ' ',
-    //     creditBefore: before||0,
-    //     totalCredit: totalCredit||0,
-    //     creditAfter: after||0,
-    //     state_at: state_at || '',
-    //     end_at: end_at || '',
-    //     out_end_at: out_end_at || '',
-    //     errorCode: errorCodeText || ''
-    // });
-    //   }
   
+  // Wait for successful login
+  await expect(page).toHaveURL(/.*super-admin.*/, { timeout: 10000 });
 
-     // console.log(`Row ${countRow + 1}: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
-   //#################################################################################
-     // # ທຸກຄົນ ທີ ກຳລັັງສາກ [0]
-     // if (status === statusTH[0] || status === statusEN[0]) {
-    //    data.push({
-    //     id: id++,
-    //     name: fullName || 'Unknown',
-    //     creditBefore: before,
-    //     totalCredit: totalCredit,
-    //     creditAfter: after
-    // });
-    // console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+  
+  // Navigate to expense management
+  await page.getByRole('button', { name: 'จัดการค่าใช้จ่าย' }).click();
+  await page.getByRole('link', { name: 'ค่าใช้จ่าย', exact: true }).click();
+  await expect(page).toHaveURL(`${BASE_URL}/super-admin/expense-info?page=1`);
+  
+ for (let i = 0; i < stationID.length; i++) {
 
-     // }
-     //#######################################################################################
-     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1]
-    // if (status === statusTH[1] || status === statusEN[1]) {
-    //    data.push({
-    //     id: id++,
-    //     name: fullName || 'Unknown',
-    //     creditBefore: before||0,
-    //     totalCredit: totalCredit||0,
-    //     creditAfter: after||0,
-    //     state_at: state_at || '',
-    //     end_at: end_at || '',
-    //     out_end_at: out_end_at || ''
-    // });
-    // console.log(`Row ${countRow + 1}: status = ${status} name: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
+  for (let j = 0; j < indata.length; j++) {
 
-    // }
+    for (let k = 0; k < moneyType.length; k++) {
+      for (let m = 0; m < payFor.length; m++) {
+        
+       // Start adding new expense
+  await page.getByRole('button', { name: 'เพิ่มค่าใช้จ่าย' }).click();
+  await expect(page).toHaveURL(`${BASE_URL}/super-admin/expense-info/add`);
+  
+  // Fill expense form
+ const locator = page.locator('xpath=//*[@id="root"]/div/main/div[2]/div[2]/div[2]/div/form/div/div[1]/div/div/select');
 
-    // //# //#################################################################################
-    //  // # ທຸກຄົນ ທີ ເງີນບໍ່ຕົງ
-    // if (before - totalCredit !== after &&  (errorCodeText!=='-' && errorCodeText!=='')) {
-    //   data.push({
-    //   id: id++,
-    //     name: fullName || 'Unknown',
-    //     adjustedCredit: adjusted_credit || '0 LAK',
-    //     creditBefore: before||0,
-    //     totalCredit: totalCredit||0,
-    //     creditAfter: after||0,
-    //     state_at: state_at || '',
-    //     end_at: end_at || '',
-    //     out_end_at: out_end_at || '',
-    //     errorCode: errorCodeText || ''
-    //   });
+  await locator.selectOption(stationID[i]);
+  
+  
+  // Select payment date - fill with full date MM/DD/YYYY
+  const dateInput = page.locator('input[type="text"]').first();
+  await dateInput.click();
+  await dateInput.fill(indata[j]);
+  await dateInput.press('Enter');
+  
+  // Select currency and exchange rate
+  await page.locator('button').filter({ hasText: 'LAK' }).click();
+  await page.getByLabel(moneyType[k]).getByText(moneyType[k]).click();
+  
+  if (k>0){
+await page.getByPlaceholder('ป้อนอัตราแลกเปลี่ยน').fill('1100');
+  }else{
+    await page.getByPlaceholder('ป้อนอัตราแลกเปลี่ยน').fill('1');
+  }
+  
+  // Select expense category
+  await page.getByRole('combobox').nth(3).click();
+  await page.getByLabel(payFor[m]).getByText(payFor[m]).click();
+  
+  // Enter amount and details - random amount between 500000 and 5000000
+  const randomAmount = Math.floor(Math.random() * (5000000 - 500000 + 1)) + 500000;
+  await page.getByPlaceholder('ป้อนจำนวนเงิน').fill(randomAmount.toString());
+  await page.getByPlaceholder('ป้อนรายละเอียด').fill('test');
+  
+  // Upload file
+  await page.locator('input[type="file"]').setInputFiles('C:\\Users\\muale\\Music\\test\\tests\\test.png');
+  
+  // Add notes
+  await page.getByPlaceholder('ป้อนหมายเหตุเพิ่มเติม').fill('ttt');
+  
+  // Submit and verify success
+  await page.getByRole('button', { name: 'บันทึก' }).click();
+  
+  // Verify redirect to expense list after successful creation
+   await expect(page).toHaveURL(/.*expense-info\?page=.*/, { timeout: 10000 });
+  //set timeout to 20 seconds
 
-    //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
-    //  }
-    //# //#################################################################################
-     // # ທຸກຄົນ ທີ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
-    // if (before - totalCredit !== after &&  (errorCodeText!=='-' && errorCodeText!=='') && adjusted_credit!==adjusted) {
-    //   data.push({
-    //   id: id++,
-    //     name: fullName || 'Unknown',
-    //     adjustedCredit: adjusted_credit || '0 LAK',
-    //     creditBefore: before||0,
-    //     totalCredit: totalCredit||0,
-    //     creditAfter: after||0,
-    //     state_at: state_at || '',
-    //     end_at: end_at || '',
-    //     out_end_at: out_end_at || '',
-    //     errorCode: errorCodeText || ''
-    //   });
-
-    //   console.log(`Mismatch found at row ${countRow + 1}: before(${before}) - used(${totalCredit}) !== after(${after})`);
-    //  }
-     //#################################################################################
-     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
-    if (status === statusTH[1] || status === statusEN[1] && !somethingError) {
-      if (before - totalCredit !== after && !somethingError ) {
-      data.push({
-        id: id++,
-        name: fullName || 'Unknown',
-        ...contactInfo,
-        adjustedCredit: adjusted_credit || ' ',
-        creditBefore: before||0,
-        totalCredit: totalCredit||0,
-        creditAfter: after||0,
-        state_at: state_at || '',
-        end_at: end_at || '',
-        out_end_at: out_end_at || '',
-        errorCode: errorCodeText || ''
-      });
-
-      console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
+  // await page.waitForTimeout(1000);
+  // await expect(page).toHaveURL(`${BASE_URL}/super-admin/expense-info?page=1`);                                      
+    
       }
     }
-
-
-    console.log(`item is ${items - (countRow + 1)} / ${itemsText}`);
-      countPage++;
-      countRow++;
-
-      // Navigate back with error handling
-
-
-
   }
 
-  }
+ }
+  //close browser
+  await page.close();
+ console.log('add completed successfully');
 
-  // Save data to using.json
-  try {
-     const now = new Date();
-    const timestamp = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-   
-    const filePath = path.join(__dirname, 'output/AllUsedsIn'+ startDate + '-' + endDate + 'Test_at'+ timestamp +'.json');
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    console.log(`Saved ${data.length} records to using.json`);
-    console.log('Data saved:', data);    
-  } catch (error) {
-    console.error('Error saving to using.json:', error);
-  }
 });
+ 
