@@ -39,8 +39,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 
 const data: UserData[] = [];
 //yyyy-mm-dd
-const startDate = '2025-12-19';
-const endDate = '2025-12-19';
+const startDate = '2025-12-29';
+const endDate = '2025-12-29';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 
@@ -130,10 +130,11 @@ const errorCodeIndex = countPage+1
       ]);
 
       // Convert string values to numbers with better parsing
+      const adjusted = parseInt((adjusted_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
       const before = parseInt((credit_before || '0').replace(/[^0-9-]/g, ''), 10) || 0;
       const after = parseInt((credit_after || '0').replace(/[^0-9-]/g, ''), 10) || 0;
     const totalCredit = parseInt((total_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
- 
+      let somethingError = adjusted === 0 && totalCredit === 0 && after === 0;
       // Convert contact to mail and phone from contact
       const contactInfo = parseContact(contact || '');
       
@@ -141,13 +142,22 @@ const errorCodeIndex = countPage+1
  
     // ###########################################################################
       // # ທຸກຄົນ
-    //   data.push({
-    //     id: id++,
+    //   if (!somethingError){
+    //         data.push({
+    //    id: id++,
     //     name: fullName || 'Unknown',
-    //     creditBefore: before,
-    //     totalCredit: totalCredit,
-    //     creditAfter: after
+    //     ...contactInfo,
+    //     adjustedCredit: adjusted_credit || ' ',
+    //     creditBefore: before||0,
+    //     totalCredit: totalCredit||0,
+    //     creditAfter: after||0,
+    //     state_at: state_at || '',
+    //     end_at: end_at || '',
+    //     out_end_at: out_end_at || '',
+    //     errorCode: errorCodeText || ''
     // });
+    //   }
+  
 
      // console.log(`Row ${countRow + 1}: ${fullName} - before(${before}) - used(${totalCredit}) = after(${after})`);
    //#################################################################################
@@ -218,8 +228,8 @@ const errorCodeIndex = countPage+1
     //  }
      //#################################################################################
      // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
-    if (status === statusTH[1] || status === statusEN[1]) {
-       if (before - totalCredit !== after ) {
+    if (status === statusTH[1] || status === statusEN[1] && !somethingError) {
+      if (before - totalCredit !== after && !somethingError ) {
       data.push({
         id: id++,
         name: fullName || 'Unknown',
@@ -235,11 +245,11 @@ const errorCodeIndex = countPage+1
       });
 
       console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
-     }
+      }
     }
 
 
-    console.log(`item is ${items}/ ${itemsText}`);
+    console.log(`item is ${items - (countRow + 1)} / ${itemsText}`);
       countPage++;
       countRow++;
 

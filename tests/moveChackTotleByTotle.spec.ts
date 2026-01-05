@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const usingPath = path.join(__dirname, '../output/AllusedsIn2025-12-10-2025-12-10v1_0.json');
-const AllusedsIn10_12_2025 = path.join(__dirname, './output/AllusedsIn2025-12-10-2025-12-10v1_0.json');
+const usingPath = path.join(__dirname, '../output/AllUsedsIn2025-12-26-2025-12-26Test_at17-17-16.json');
+const AllusedsIn10_12_2025 = path.join(__dirname, './output/AllUsedsIn2025-12-26-2025-12-26Test_at17-17-16.json');
 // import json from '../output/AllusedsIn10_12_2025.json';
 const datas = AllusedsIn10_12_2025 && fs.existsSync(AllusedsIn10_12_2025) ? JSON.parse(fs.readFileSync(AllusedsIn10_12_2025, 'utf-8')) : [];
 
@@ -24,7 +24,10 @@ if (fs.existsSync(AllusedsIn10_12_2025)) {
 interface UserData {
   id: number;
   name: string;
+  phone?: string;
+  mail?: string;
   creditBefore?: number;
+
   totalCredit?: number;
   creditAfter?: number;
   credTopup?: number;
@@ -41,11 +44,21 @@ interface UserData {
 const userMap = new Map<string, UserData>();
 
 for (const user of json) {
-  const existingUser = userMap.get(user.name);
+  // Create a unique key based on name and available contact info
+  let userKey: string;
+  if (user.phone) {
+    userKey = `${user.name}|phone:${user.phone}`;
+  } else if (user.mail) {
+    userKey = `${user.name}|mail:${user.mail}`;
+  } else {
+    userKey = `${user.name}|no-contact`;
+  }
+  
+  const existingUser = userMap.get(userKey);
   
   if (!existingUser) {
-    // First occurrence of this user name
-    userMap.set(user.name, user);
+    // First occurrence of this user combination
+    userMap.set(userKey, user);
   } else {
     // Compare out_end_at dates to keep the latest one
     const existingDate = existingUser.out_end_at || '';
@@ -53,7 +66,7 @@ for (const user of json) {
     
     if (currentDate > existingDate) {
       // Current user has a later out_end_at, replace the existing one
-      userMap.set(user.name, user);
+      userMap.set(userKey, user);
     }
   }
 }
@@ -99,9 +112,76 @@ let countRow = 0;
       console.log(`Processing id ${user.id} user: ${user.name} (latest out_end_at: ${user.out_end_at})`);
 
       // Clear search field and search for user
-      await page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล').clear();
-      await page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล').fill(user.name);
-      await page.waitForTimeout(1000); // Wait for search results
+      if (user.name && (user.name !== '-' && user.name !== '_')) {
+        const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill(user.name);
+      await page.waitForTimeout(3000);
+      // ກວດຊື່ຄືກັນ
+      const itemsLocator = page.locator('xpath=//*[@id="root"]/div/main/div[2]/div/div[2]/div[2]/div[1]/div[1]');
+      await itemsLocator.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        console.log('Items count element not visible');
+      });
+      const itemsText = await itemsLocator.textContent().catch(() => {
+        console.log('Failed to get items text, using 0');
+        return '0';
+      });
+      console.log('Raw items text:', itemsText);
+      let items = Number.parseInt((itemsText || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      console.log('Total items found:', items);
+   
+        if (items >1) {
+          if (user.phone) {
+        const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
+      await searchBoxPhone.clear();
+      await searchBoxPhone.fill(user.phone);
+      await page.waitForTimeout(800);
+      }else  if (user.mail){
+      const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
+      await searchBoxMail.clear();
+      await searchBoxMail.fill(user.mail);
+      await page.waitForTimeout(800);
+      }
+        }else if (items === 0) {
+          if (user.phone) {
+        const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
+      await searchBoxPhone.clear();
+      await searchBoxPhone.fill(user.phone);
+      await page.waitForTimeout(800);
+      }else  if (user.mail){
+      const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
+      await searchBoxMail.clear();
+      await searchBoxMail.fill(user.mail);
+      await page.waitForTimeout(800);
+      }
+        }
+
+      } else if (!user.name || (user.name==='-' || user.name==='_')) {
+        if (user.phone) {
+        const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
+      await searchBoxPhone.clear();
+      await searchBoxPhone.fill(user.phone);
+      await page.waitForTimeout(800);
+      }else  if (user.mail){
+      const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
+      await searchBox.clear();
+      await searchBox.fill("");
+      const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
+      await searchBoxMail.clear();
+      await searchBoxMail.fill(user.mail);
+      await page.waitForTimeout(800);
+      }
+      }
+      // Wait for search results 0.8s
 
             await page.getByRole('cell', { name: user.name, exact: true }).first().click();
 
@@ -138,7 +218,10 @@ let countRow = 0;
 
   // Save data to notTheSame.json
   try {
-    const filePath = path.join(__dirname, 'output/notTheSameWalletxxxxV1_0_4.json');
+     const now = new Date();
+    const timestamp = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+    
+    const filePath = path.join(__dirname, `output/notTheSameWallet_${timestamp}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     console.log(`Saved ${data.length} records to notTheSame.json`);
     console.log('Data saved:', data);

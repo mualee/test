@@ -2,24 +2,22 @@ import { test, expect } from '@playwright/test';
 //using.json
 import fs from 'fs';
 import path from 'path';
-const inputFilePath = path.join(__dirname, './output/AllUsedsIn2025-12-29-2025-12-29Test_at17-35-05.json');
-
-console.log('Looking for file at:', inputFilePath);
-
-let json: UserData[] = [];
-if (fs.existsSync(inputFilePath)) {
-  json = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
-  // Remove trailing spaces from user names
-  json = json.map(user => ({
-    ...user,
-    name: user.name.trimEnd()
-  }));
-  console.log(`Loaded ${json.length} records from file`);
-} else {
-  console.log('Input file not found, using empty array');
-}
-//edit json data user.name 
+const usingPath = path.join(__dirname, '../output/using.json');
 interface UserData {
+  id: number;
+  name: string;
+  mail?: string;
+  phone?: string;
+  adjustedCredit: string;
+  creditBefore: number;
+  totalCredit: number;
+  creditAfter: number;
+  state_at: string;
+  end_at: string;
+  out_end_at: string;
+  errorCode: string;
+}
+interface UserDataFilter {
   id: number;
   name: string;
   phone?: string;
@@ -35,7 +33,6 @@ interface UserData {
   topup_at?: string;
   errorCode: string;
 }
-
 interface AllCompleted {
   status: string;
   userBugs: number;
@@ -48,28 +45,173 @@ const completedUsers: AllCompleted[] = [
     tester: "Can go Home Now  (っ◔◡◔)っ"
   }
 ];
+// Function to parse contact and determine if it's phone or email
+function parseContact(contact: string): { mail?: string; phone?: string } {
+  const trimmedContact = contact.trim();
+  
+  // Check if it's an email (contains @)
+  if (trimmedContact.includes('@')) {
+    return { mail: trimmedContact };
+  }
+  
+  // Check if it's a phone number (only digits, possibly with spaces/dashes)
+  const digitsOnly = trimmedContact.replace(/[\s-]/g, '');
+  if (/^\d+$/.test(digitsOnly)) {
+    return { phone: digitsOnly };
+  }
+  
+  // Default to empty object if neither
+  return {};
+}
+
 const data: UserData[] = [];
-const startDate = '2025-12-29';
-const endDate = '2025-12-29';
+const dataFilter: UserDataFilter[] = [];
+//yyyy-mm-dd
+const startDate = '2025-12-30';
+const endDate = '2025-12-30';
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"]
 const statusEN = ["CHARGING", "COMPLETED"]
 // day == getDate() only dd from startDate
 const startDay = new Date(startDate).getDate();
 const endDay = new Date(endDate).getDate();
+
 // const errorCodeText = ''
 
 test('check customer', async ({ page }) => {
   test.setTimeout(7200000); // 2 hours timeout for processing all records
   await page.goto('https://admin.moveinno.com/');
+  // Expect a title "to contain" a substring.
+  await page.locator('#username').click();
   await page.locator('#username').fill('Evlaomanager');
+  await page.locator('#password').click();
   await page.locator('#password').fill('HQj0[4Ii1Ghj8H2*');
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
+
+  await page.getByRole('link', { name: 'ประวัติการชาร์จ' }).click();
+  // Use a broader date range that's more likely to have data
+  await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=1&startDate=${startDate}&endDate=${endDate}`);
+let countRow = 0;
+  let countPage = 0;
+  let countPages = 1;
+  let id = 0;
+  let tableRows = 0;
+
+  // Wait for the page to load and check if there's data
+  await page.waitForSelector('table', { timeout: 10000 });
+
+  // Check how many rows are actually in the table
+//loader 2 sec
+  await page.waitForTimeout(4000);
+  const itemsText = await page.locator('#total-charge-history').textContent().catch(() => '0');
+  console.log('Raw items text:', itemsText);
+  let items = Number.parseInt((itemsText || '0').replace(/[^0-9]/g, ''), 10) || 0;
+  console.log('Total items found:', items);
+
+  // If no items found, try to count table rows as fallback
+  if (items === 0) {
+    console.log('No items found with primary selector, trying table row count...');
+
+
+
+  } else if (items > 0) {
+
+   console.log('Items found with primary selector:', items);
+  // Use totalRows instead of hard-coded 200
+  console.log(`Starting loop with ${items} items to process`);
+
+   while (countRow < items) {
+
+    // Check if we need to go to next page (every 50 rows)
+    if (countPage === 50) {
+      countPages++;
+      console.log(`Going to page ${countPages}`);
+      await page.goto(`https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`);
+      await page.waitForSelector('table', { timeout: 10000 });
+      countPage = 0; // Reset page counter
+      tableRows=0;
+     }
+
+const errorCodeIndex = countPage+1
+
+
+      console.log(`Processing row ${countRow + 1}...`);
+
+      //wait for the detail page to load
+      await page.waitForSelector('#user-full-name-'+(countRow+1), { timeout: 4000 });
+
+      // Get all required data in parallel for better performance
+      // Debug: log tableRows and selector
+      
+      // Optionally log the row's HTML
+      // const rowHtml = await page.locator('tr:nth-child(' + (tableRows + 1) + ')').innerHTML().catch(() => 'Row not found');
+      // console.log('DEBUG: Row HTML:', rowHtml);
+      let [fullName, adjusted_credit, credit_before, credit_after,contact, total_credit, status, state_at, end_at, out_end_at, errorCodeText] = await Promise.all([
+        page.locator('#user-full-name-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#additional-credit-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#credit-before-cal-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#credit-after-cal-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#user-contact-field-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#total-credit-' + (countRow + 1)).textContent().catch(() => '0'),
+        page.locator('#status-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#charge-start-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#charge-end-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator('#unplug-time-' + (countRow + 1)).textContent().catch(() => ''),
+        page.locator(`tr:nth-child(${errorCodeIndex}) > td:nth-child(16)`).textContent().catch(() => '')
+      ]);
+
+      // Convert string values to numbers with better parsing
+      const adjusted = parseInt((adjusted_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
+      const before = parseInt((credit_before || '0').replace(/[^0-9-]/g, ''), 10) || 0;
+      const after = parseInt((credit_after || '0').replace(/[^0-9-]/g, ''), 10) || 0;
+    const totalCredit = parseInt((total_credit || '0').replace(/[^0-9-]/g, ''), 10) || 0;
+      let somethingError = adjusted === 0 && totalCredit === 0 && after === 0;
+      // Convert contact to mail and phone from contact
+      const contactInfo = parseContact(contact || '');
+      
+ 
+ 
+    // ###########################################################################
+    
+     // # ທຸກຄົນ ທີ  ສາກແລ້ວ[1] ແລະ ເງີນບໍ່ຕົງ ແລະ ມີໜີ
+    if (status === statusTH[1] || status === statusEN[1] && !somethingError) {
+      if (before - totalCredit !== after && !somethingError ) {
+      data.push({
+        id: id++,
+        name: fullName || 'Unknown',
+        ...contactInfo,
+        adjustedCredit: adjusted_credit || ' ',
+        creditBefore: before||0,
+        totalCredit: totalCredit||0,
+        creditAfter: after||0,
+        state_at: state_at || '',
+        end_at: end_at || '',
+        out_end_at: out_end_at || '',
+        errorCode: errorCodeText || ''
+      });
+
+      console.log(`Mismatch found at row ${countRow + 1} name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`);
+      }
+    }
+
+
+    console.log(`item is ${items - (countRow + 1)} / ${itemsText}`);
+      countPage++;
+      countRow++;
+
+      // Navigate back with error handling
+
+
+
+  }
+
+  }
+
+//#########################################################################################
   await page.getByRole('link', { name: 'จัดการลูกค้า' }).first().click(); 
   await page.goto("https://admin.moveinno.com/move-ev/user-management?page=1");
   await page.waitForSelector('table', { timeout: 50000 });
-  let id = 0;
-  
-  for (const user of json) {
+  id = 0;
+  for (const user of data) {
     try {
       
       console.log(`Processing id ${user.id} user: ${user.name}`);
@@ -77,7 +219,7 @@ test('check customer', async ({ page }) => {
         const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
       await searchBox.clear();
       await searchBox.fill(user.name);
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(5000);
       // ກວດຊື່ຄືກັນ
       const itemsLocator = page.locator('xpath=//*[@id="root"]/div/main/div[2]/div/div[2]/div[2]/div[1]/div[1]');
       await itemsLocator.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
@@ -96,12 +238,12 @@ test('check customer', async ({ page }) => {
         const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
       await searchBoxPhone.clear();
       await searchBoxPhone.fill(user.phone);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       }else  if (user.mail){
       const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
       await searchBoxMail.clear();
       await searchBoxMail.fill(user.mail);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       }
         }else if (items === 0) {
           if (user.phone) {
@@ -111,7 +253,7 @@ test('check customer', async ({ page }) => {
       const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
       await searchBoxPhone.clear();
       await searchBoxPhone.fill(user.phone);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       }else  if (user.mail){
       const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
       await searchBox.clear();
@@ -119,7 +261,7 @@ test('check customer', async ({ page }) => {
       const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
       await searchBoxMail.clear();
       await searchBoxMail.fill(user.mail);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       }
         }
 
@@ -131,7 +273,7 @@ test('check customer', async ({ page }) => {
       const searchBoxPhone = page.getByPlaceholder('ค้นหาด้วยเบอร์โทร');
       await searchBoxPhone.clear();
       await searchBoxPhone.fill(user.phone);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       }else  if (user.mail){
       const searchBox = page.getByPlaceholder('ค้นหาด้วยชื่อ และ นามสกุล');
       await searchBox.clear();
@@ -139,7 +281,7 @@ test('check customer', async ({ page }) => {
       const searchBoxMail = page.getByPlaceholder('ค้นหาด้วยอีเมล');
       await searchBoxMail.clear();
       await searchBoxMail.fill(user.mail);
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(3000);
       }
       }
 
@@ -153,9 +295,9 @@ test('check customer', async ({ page }) => {
       await page.getByRole('combobox').click();
       await page.getByLabel('เติมเงิน').click();
       await page.getByRole('button', { name: 'วันที่เริ่มต้น' }).click();
-      await page.getByRole('gridcell', { name: startDay.toString() }).first().click();
+      await page.getByRole('gridcell', { name: startDay.toString() }).last().click();
       await page.getByRole('button', { name: 'วันที่สิ้นสุด' }).click();
-      await page.getByRole('gridcell', { name: endDay.toString() }).first().click();
+      await page.getByRole('gridcell', { name: endDay.toString() }).last().click();
       await page.waitForTimeout(2000);
       const listtext = await page.locator('#detail-customer-total').textContent().catch(() => 'can not Loading...');
       if (listtext === 'can not Loading...') {
@@ -182,7 +324,7 @@ test('check customer', async ({ page }) => {
 
       if (lists === 0) {
         console.log(`No transaction history for user: ${user.name}`);
-        data.push(createUserRecord(0, 'No Topup'));
+        dataFilter.push(createUserRecord(0, 'No Topup'));
       } else {
         console.log(`Transaction history found for user: ${user.name}`);
         let credit_history = '0';
@@ -197,20 +339,20 @@ test('check customer', async ({ page }) => {
 
           credit_history = creditText ?? '0';
           const rawDate = dateText ?? '0';
-          date_Topup = rawDate.replace(/(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}):\d{2}/, '$1');
+          date_Topup = rawDate;
           
           hasTopup = date_Topup >= user.state_at && date_Topup <= user.out_end_at;
         }
 
         if (!hasTopup) {
           console.log(`No topup found for ${user.name}`);
-          data.push(createUserRecord(0, 'No Topup'));
+          dataFilter.push(createUserRecord(0, 'No Topup'));
         } else {
           const creditNum = Number.parseFloat(credit_history.replace(/[^0-9.-]/g, '')) || 0;
           const creditAfterTrue = (user.creditBefore + creditNum) - user.totalCredit;
 
           if (creditAfterTrue !== user.creditAfter) {
-            data.push(createUserRecord(creditNum, date_Topup));
+            dataFilter.push(createUserRecord(creditNum, date_Topup));
             console.log(`Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`);
           } else {
             console.log(`${user.name}: credit consistent`);
@@ -230,17 +372,28 @@ test('check customer', async ({ page }) => {
   }
 
   //check data 
-  if (data.length === 0) {
-    data.push(...completedUsers as any);
+  if (dataFilter.length === 0) {
+    dataFilter.push(...completedUsers as any);
   }
 
+  // Save data to using.json
   try {
-    const now = new Date();
+     const now = new Date();
     const timestamp = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-    const filePath = path.join(__dirname, `output/creditCheck_${startDate}_${timestamp}.json`);
+   
+    // Create the CheckOn_ folder if it doesn't exist
+    const outputDir = path.join(__dirname, 'output/CheckOn_'+startDate);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+   
+    const filePath = path.join(__dirname, 'output/CheckOn_'+startDate+'/AllUsedsIn'+ startDate + '-' + endDate + 'Test_at'+ timestamp +'.json');
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    console.log(`\n✓ Saved ${data.length} records to ${path.basename(filePath)}`);
+    const filePathFilter = path.join(__dirname, 'output/CheckOn_'+startDate+'/CreditCheck_'+ startDate + '-' + endDate + 'Test_at'+ timestamp +'.json');
+    fs.writeFileSync(filePathFilter, JSON.stringify(dataFilter, null, 2), 'utf8');
+    console.log(`Saved ${dataFilter.length} records to using.json`);
+    console.log('Data saved:', dataFilter);    
   } catch (error) {
-    console.error('Error saving file:', error);
+    console.error('Error saving to using.json:', error);
   }
 });
