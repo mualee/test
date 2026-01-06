@@ -67,8 +67,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2026-01-05";
-const endDate = "2026-01-05";
+const startDate = "2026-01-06";
+const endDate = "2026-01-06";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate
@@ -266,6 +266,7 @@ test("check customer", async ({ page }) => {
   await page.goto("https://admin.moveinno.com/move-ev/user-management?page=1");
   await page.waitForSelector("table", { timeout: 50000 });
   id = 0;
+  console.log(`all users ==== ${data.length} `);
   for (const user of data) {
     try {
       console.log(`Processing id ${user.id} user: ${user.name}`);
@@ -298,11 +299,19 @@ test("check customer", async ({ page }) => {
             await searchBoxPhone.clear();
             await searchBoxPhone.fill(user.phone);
             await page.waitForTimeout(3000);
+             await page
+        .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
+        .first()
+        .click();
           } else if (user.mail) {
             const searchBoxMail = page.getByPlaceholder("ค้นหาด้วยอีเมล");
             await searchBoxMail.clear();
             await searchBoxMail.fill(user.mail);
             await page.waitForTimeout(3000);
+             await page
+        .getByRole("cell", { name: user.mail, exact: true })
+        .first()
+        .click();
           }
         } else if (items === 0) {
           if (user.phone) {
@@ -315,6 +324,10 @@ test("check customer", async ({ page }) => {
             await searchBoxPhone.clear();
             await searchBoxPhone.fill(user.phone);
             await page.waitForTimeout(3000);
+            await page
+        .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
+        .first()
+        .click();
           } else if (user.mail) {
             const searchBox = page.getByPlaceholder(
               "ค้นหาด้วยชื่อ และ นามสกุล"
@@ -325,7 +338,16 @@ test("check customer", async ({ page }) => {
             await searchBoxMail.clear();
             await searchBoxMail.fill(user.mail);
             await page.waitForTimeout(3000);
+              await page
+        .getByRole("cell", { name: user.mail, exact: true })
+        .first()
+        .click();
           }
+        }else {
+            await page
+        .getByRole("cell", { name: user.name, exact: true })
+        .first()
+        .click();
         }
       } else if (!user.name || user.name === "-" || user.name === "_") {
         if (user.phone) {
@@ -336,6 +358,10 @@ test("check customer", async ({ page }) => {
           await searchBoxPhone.clear();
           await searchBoxPhone.fill(user.phone);
           await page.waitForTimeout(3000);
+          await page
+        .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
+        .first()
+        .click();
         } else if (user.mail) {
           const searchBox = page.getByPlaceholder("ค้นหาด้วยชื่อ และ นามสกุล");
           await searchBox.clear();
@@ -344,13 +370,17 @@ test("check customer", async ({ page }) => {
           await searchBoxMail.clear();
           await searchBoxMail.fill(user.mail);
           await page.waitForTimeout(3000);
+            await page
+        .getByRole("cell", { name: user.mail, exact: true })
+        .first()
+        .click();
         }
       }
 
-      await page
-        .getByRole("cell", { name: user.name, exact: true })
-        .first()
-        .click();
+      // await page
+      //   .getByRole("cell", { name: user.name, exact: true })
+      //   .first()
+      //   .click();
       await page.getByRole("button", { name: "ประวัติการชำระเงิน" }).click();
 
       await page.getByRole("combobox").click();
