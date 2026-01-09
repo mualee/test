@@ -26,6 +26,7 @@ interface UserDataFilter {
   totalCredit: number;
   creditAfter: number;
   credTopup?: number;
+  differ: number;
   creditAfterTrue?: number;
   state_at: string;
   end_at: string;
@@ -67,8 +68,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2026-01-06";
-const endDate = "2026-01-06";
+const startDate = "2026-01-08";
+const endDate = "2026-01-08";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate
@@ -387,12 +388,12 @@ test("check customer", async ({ page }) => {
       await page.getByLabel("เติมเงิน").click();
       await page.getByRole("button", { name: "วันที่เริ่มต้น" }).click();
       await page
-        .getByRole("gridcell", { name: startDay.toString() })
+        .getByRole("gridcell", { name: startDay.toString(), exact: true })
         .first()
         .click();
       await page.getByRole("button", { name: "วันที่สิ้นสุด" }).click();
       await page
-        .getByRole("gridcell", { name: endDay.toString() })
+        .getByRole("gridcell", { name: endDay.toString(), exact: true })
         .first()
         .click();
       await page.waitForTimeout(2000);
@@ -415,6 +416,7 @@ test("check customer", async ({ page }) => {
         totalCredit: user.totalCredit,
         creditAfter: user.creditAfter,
         credTopup: creditNum,
+        differ: (user.creditBefore + creditNum - user.totalCredit) - user.creditAfter,
         creditAfterTrue: user.creditBefore + creditNum - user.totalCredit,
         state_at: user.state_at,
         end_at: user.end_at,
