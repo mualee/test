@@ -68,8 +68,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2026-01-08";
-const endDate = "2026-01-08";
+const startDate = "2025-11-08";
+const endDate = "2025-11-08";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate

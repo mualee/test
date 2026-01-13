@@ -10,5 +10,21 @@
   "devDependencies": {
     "@playwright/test": "^1.53.1",
     "@types/node": "^24.0.7"
-  }
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "playwright": "^1.53.1",
+    "playwright-core": "^1.53.1",
+    "undici-types": "^7.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mualee/test.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mualee/test/issues"
+  },
+  "homepage": "https://github.com/mualee/test#readme"
 }
