@@ -68,8 +68,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2025-11-08";
-const endDate = "2025-11-08";
+const startDate = "2025-12-16";
+const endDate = "2025-12-16";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate
@@ -247,8 +247,7 @@ test("check customer", async ({ page }) => {
           });
 
           console.log(
-            `Mismatch found at row ${
-              countRow + 1
+            `Mismatch found at row ${countRow + 1
             } name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`
           );
         }
@@ -300,19 +299,19 @@ test("check customer", async ({ page }) => {
             await searchBoxPhone.clear();
             await searchBoxPhone.fill(user.phone);
             await page.waitForTimeout(3000);
-             await page
-        .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
-        .first()
-        .click();
+            await page
+              .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
+              .first()
+              .click();
           } else if (user.mail) {
             const searchBoxMail = page.getByPlaceholder("ค้นหาด้วยอีเมล");
             await searchBoxMail.clear();
             await searchBoxMail.fill(user.mail);
             await page.waitForTimeout(3000);
-             await page
-        .getByRole("cell", { name: user.mail, exact: true })
-        .first()
-        .click();
+            await page
+              .getByRole("cell", { name: user.mail, exact: true })
+              .first()
+              .click();
           }
         } else if (items === 0) {
           if (user.phone) {
@@ -326,9 +325,9 @@ test("check customer", async ({ page }) => {
             await searchBoxPhone.fill(user.phone);
             await page.waitForTimeout(3000);
             await page
-        .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
-        .first()
-        .click();
+              .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
+              .first()
+              .click();
           } else if (user.mail) {
             const searchBox = page.getByPlaceholder(
               "ค้นหาด้วยชื่อ และ นามสกุล"
@@ -339,16 +338,16 @@ test("check customer", async ({ page }) => {
             await searchBoxMail.clear();
             await searchBoxMail.fill(user.mail);
             await page.waitForTimeout(3000);
-              await page
-        .getByRole("cell", { name: user.mail, exact: true })
-        .first()
-        .click();
-          }
-        }else {
             await page
-        .getByRole("cell", { name: user.name, exact: true })
-        .first()
-        .click();
+              .getByRole("cell", { name: user.mail, exact: true })
+              .first()
+              .click();
+          }
+        } else {
+          await page
+            .getByRole("cell", { name: user.name, exact: true })
+            .first()
+            .click();
         }
       } else if (!user.name || user.name === "-" || user.name === "_") {
         if (user.phone) {
@@ -360,9 +359,9 @@ test("check customer", async ({ page }) => {
           await searchBoxPhone.fill(user.phone);
           await page.waitForTimeout(3000);
           await page
-        .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
-        .first()
-        .click();
+            .getByRole("cell", { name: `+856 ${user.phone}`, exact: true })
+            .first()
+            .click();
         } else if (user.mail) {
           const searchBox = page.getByPlaceholder("ค้นหาด้วยชื่อ และ นามสกุล");
           await searchBox.clear();
@@ -371,10 +370,10 @@ test("check customer", async ({ page }) => {
           await searchBoxMail.clear();
           await searchBoxMail.fill(user.mail);
           await page.waitForTimeout(3000);
-            await page
-        .getByRole("cell", { name: user.mail, exact: true })
-        .first()
-        .click();
+          await page
+            .getByRole("cell", { name: user.mail, exact: true })
+            .first()
+            .click();
         }
       }
 
@@ -386,16 +385,127 @@ test("check customer", async ({ page }) => {
 
       await page.getByRole("combobox").click();
       await page.getByLabel("เติมเงิน").click();
-      await page.getByRole("button", { name: "วันที่เริ่มต้น" }).click();
-      await page
-        .getByRole("gridcell", { name: startDay.toString(), exact: true })
-        .first()
-        .click();
-      await page.getByRole("button", { name: "วันที่สิ้นสุด" }).click();
-      await page
-        .getByRole("gridcell", { name: endDay.toString(), exact: true })
-        .first()
-        .click();
+      let use_at: string = user.state_at.split(' ')[0]; // "08/01/2026"
+      let end_at: string = user.out_end_at.split(' ')[0]; // "08/01/2026"
+      let [state_day, state_month, state_year] = use_at.split('/').map(Number);
+      let [end_day, end_month, end_year] = end_at.split('/').map(Number);
+      const [monthToday, dayToday, yearToday] = new Date().toLocaleDateString('en-US').split('/').map(Number);
+      //covert day from 01,02 to 1,2
+      state_day = Number(state_day);
+      end_day = Number(end_day);
+
+       await page.getByRole('button', { name: 'วันที่เริ่มต้น' }).click();
+      console.log(`Selecting start date: ${state_day}/${state_month}/${state_year}`);
+     console.log(`Current end date: ${end_day}/${end_month}/${end_year}`);
+      console.log(`Today's date: ${dayToday}/${monthToday}/${yearToday}`);
+      if (yearToday == state_year) {
+        console.log('same year for state_at');
+
+        if (monthToday == state_month) {
+          console.log('same month for state_at');
+          await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).click();
+        } else if (monthToday < state_month) {
+          console.log('state_month is ahead');
+          await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
+          for (let c = 0; c < (state_month - monthToday); c++) {
+            await page.getByLabel('Go to next month').click();
+          }
+          await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).click();
+        } else if (monthToday > state_month) {
+          console.log('state_month is behind');
+          await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
+          for (let c = 0; c < (monthToday - state_month); c++) {
+            await page.getByLabel('Go to previous month').click();
+          }
+          await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).click();
+        }
+      } else if (yearToday > state_year) {
+        console.log('state_year is behind');
+        await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
+        let allMonths = (yearToday - state_year) * 12;
+        for (let c = 0; c < allMonths + (monthToday - state_month); c++) {
+          await page.getByLabel('Go to previous month').click();
+          console.log(`minus 1 yn>y ${c+1}`);
+        }
+        await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).click();
+      } else if (yearToday < state_year) {
+        console.log('state_year is ahead');
+        let allMonths = (state_year - yearToday) * 12;
+        await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
+        for (let c = 0; c < allMonths + (state_month - monthToday); c++) {
+          await page.getByLabel('Go to next month').click();
+        }
+        await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).click();
+      }else {
+        console.log('error date state_at');
+        return false;
+      }
+
+      // await page.getByRole("button", { name: "วันที่สิ้นสุด" }).click();
+       await page.getByRole('button', { name: 'วันที่สิ้นสุด' }).click();
+
+      if (yearToday == end_year) {
+          console.log('same year for end_at');
+           await page.getByRole("gridcell").first().waitFor({ timeout: 5000 });
+        if (monthToday == end_month) {
+          console.log('same month for end_at');
+          await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).click();
+          
+        } else if (monthToday < end_month) {
+          console.log('end_month is ahead');
+          await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
+          for (let c = 0; c < (end_month - monthToday); c++) {
+            
+            await page.getByLabel('Go to next month').click();
+            console.log(`add mp<m ${c++}`);
+          }
+          await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).click();
+        } else if (monthToday > end_month) {
+          console.log('end_month is behind');
+          await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
+          for (let c = 0; c < (monthToday - end_month); c++) {
+
+            await page.getByLabel('Go to previous month').click();
+            console.log(`minus mn>m ${c++}`);
+          }
+          await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).click();
+        }
+
+      } else if (yearToday > end_year) {
+        console.log('end_year is behind');
+        let allMonths = (yearToday - end_year) * 12;
+          await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
+        for (let c = 0; c < allMonths + (monthToday - end_month); c++) {
+            console.log(`minus 2 yn>y ${c+1}`);
+            await page.getByLabel('Go to previous month').click();
+           
+        }
+        await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).click();
+        console.log(`add ${end_day}`);
+      } else if (yearToday < end_year) {
+        console.log('end_year is ahead');
+        let allMonths = (end_year - yearToday) * 12;
+          await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 }); 
+        for (let c = 0; c < allMonths + (end_month - monthToday); c++) {
+          await page.getByLabel('Go to next month').click();
+          console.log(`add yp<y ${c+1}`);
+        }
+        await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).click();
+      }else {
+        console.log('error date end_at');
+        // return false;
+      }
+
+
+
+
+
+
+
+      // await page
+      //   .getByRole("gridcell", { name: endDay.toString(), exact: true })
+      //   .first()
+      //   .click();
       await page.waitForTimeout(2000);
       const listtext = await page
         .locator("#detail-customer-total")
@@ -516,27 +626,27 @@ test("check customer", async ({ page }) => {
     const filePath = path.join(
       __dirname,
       "output/CheckOn_" +
-        startDate +
-        "/AllUsedsIn" +
-        startDate +
-        "-" +
-        endDate +
-        "Test_at" +
-        timestamp +
-        ".json"
+      startDate +
+      "/AllUsedsIn" +
+      startDate +
+      "-" +
+      endDate +
+      "Test_at" +
+      timestamp +
+      ".json"
     );
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
     const filePathFilter = path.join(
       __dirname,
       "output/CheckOn_" +
-        startDate +
-        "/CreditCheck_" +
-        startDate +
-        "-" +
-        endDate +
-        "Test_at" +
-        timestamp +
-        ".json"
+      startDate +
+      "/CreditCheck_" +
+      startDate +
+      "-" +
+      endDate +
+      "Test_at" +
+      timestamp +
+      ".json"
     );
     fs.writeFileSync(
       filePathFilter,
