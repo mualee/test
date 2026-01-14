@@ -1,0 +1,47 @@
+[
+  {
+    "id": 0,
+    "name": "kevin vunderphou",
+    "creditBefore": 67271,
+    "totalCredit": 45990,
+    "creditAfter": 24998,
+    "credTopup": 0,
+    "differ": -3717,
+    "creditAfterTrue": 21281,
+    "state_at": "13/01/2026 19:48:45",
+    "end_at": "13/01/2026 20:16:49",
+    "out_end_at": "13/01/2026 20:17:06",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  },
+  {
+    "id": 1,
+    "name": "ຕິ ຄຳຕິພົງ",
+    "creditBefore": 81563,
+    "totalCredit": 8244,
+    "creditAfter": 2227,
+    "credTopup": 0,
+    "differ": 71092,
+    "creditAfterTrue": 73319,
+    "state_at": "13/01/2026 19:27:07",
+    "end_at": "13/01/2026 19:40:31",
+    "out_end_at": "13/01/2026 19:40:31",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  },
+  {
+    "id": 2,
+    "name": "kevin vunderphou",
+    "creditBefore": 62287,
+    "totalCredit": 67125,
+    "creditAfter": 95162,
+    "credTopup": 0,
+    "differ": -100000,
+    "creditAfterTrue": -4838,
+    "state_at": "13/01/2026 09:53:19",
+    "end_at": "13/01/2026 10:19:34",
+    "out_end_at": "13/01/2026 10:20:05",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  }
+]

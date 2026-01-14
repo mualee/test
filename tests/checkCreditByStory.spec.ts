@@ -68,8 +68,8 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2025-11-08";
-const endDate = "2025-11-08";
+const startDate = "2026-1-13";
+const endDate = "2026-1-13";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate
@@ -416,7 +416,7 @@ test("check customer", async ({ page }) => {
         totalCredit: user.totalCredit,
         creditAfter: user.creditAfter,
         credTopup: creditNum,
-        differ: (user.creditBefore + creditNum - user.totalCredit) - user.creditAfter,
+        differ: ((user.creditBefore + creditNum )- user.totalCredit) - user.creditAfter,
         creditAfterTrue: user.creditBefore + creditNum - user.totalCredit,
         state_at: user.state_at,
         end_at: user.end_at,
@@ -451,10 +451,19 @@ test("check customer", async ({ page }) => {
           date_Topup = rawDate;
 
           // Convert to Date objects for proper comparison
-          const topupTime = new Date(date_Topup);
-          const startTime = new Date(user.state_at);
-          const endTime = new Date(user.out_end_at);
+          // Parse DD/MM/YYYY HH:mm:ss format explicitly
+          const parseDate = (dateStr: string) => {
+            const [datePart, timePart] = dateStr.split(' ');
+            const [day, month, year] = datePart.split('/').map(Number);
+            const [hour, minute, second] = (timePart || '00:00:00').split(':').map(Number);
+            return new Date(year, month - 1, day, hour, minute, second);
+          };
 
+          const topupTime = parseDate(date_Topup);
+          const startTime = parseDate(user.state_at);
+          const endTime = parseDate(user.out_end_at);
+
+          console.log(`Comparing dates for ${user.name}: topup=${topupTime.toISOString()}, start=${startTime.toISOString()}, end=${endTime.toISOString()}`);
           hasTopup = topupTime >= startTime && topupTime <= endTime;
         }
 
