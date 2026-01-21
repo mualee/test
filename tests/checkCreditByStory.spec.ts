@@ -69,12 +69,12 @@ function parseContact(contact: string): { mail?: string; phone?: string } {
 // Function to parse DD/MM/YYYY HH:MN:SS format to Date object
 function parseThaiDateTime(dateTimeStr: string): Date {
   // Format: "08/01/2026 14:30:45" or "08/01/2026"
-  const parts = dateTimeStr.trim().split(' ');
+  const parts = dateTimeStr.trim().split(" ");
   const datePart = parts[0]; // "08/01/2026"
   const timePart = parts[1] || "00:00:00"; // Default to midnight if no time
 
-  const [day, month, year] = datePart.split('/').map(Number);
-  const [hours, minutes, seconds] = timePart.split(':').map(Number);
+  const [day, month, year] = datePart.split("/").map(Number);
+  const [hours, minutes, seconds] = timePart.split(":").map(Number);
 
   // JavaScript Date uses 0-indexed months
   return new Date(year, month - 1, day, hours || 0, minutes || 0, seconds || 0);
@@ -83,8 +83,8 @@ function parseThaiDateTime(dateTimeStr: string): Date {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2026-1-17";
-const endDate = "2026-1-17";
+const startDate = "2026-1-21";
+const endDate = "2026-1-21";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate
@@ -106,7 +106,7 @@ test("check customer", async ({ page }) => {
   await page.getByRole("link", { name: "ประวัติการชาร์จ" }).click();
   // Use a broader date range that's more likely to have data
   await page.goto(
-    `https://admin.moveinno.com/move-ev/charging-history-management?page=1&startDate=${startDate}&endDate=${endDate}`
+    `https://admin.moveinno.com/move-ev/charging-history-management?page=1&startDate=${startDate}&endDate=${endDate}`,
   );
   let countRow = 0;
   let countPage = 0;
@@ -132,7 +132,7 @@ test("check customer", async ({ page }) => {
   // If no items found, try to count table rows as fallback
   if (items === 0) {
     console.log(
-      "No items found with primary selector, trying table row count..."
+      "No items found with primary selector, trying table row count...",
     );
   } else if (items > 0) {
     console.log("Items found with primary selector:", items);
@@ -145,7 +145,7 @@ test("check customer", async ({ page }) => {
         countPages++;
         console.log(`Going to page ${countPages}`);
         await page.goto(
-          `https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`
+          `https://admin.moveinno.com/move-ev/charging-history-management?page=${countPages}&startDate=${startDate}&endDate=${endDate}`,
         );
         await page.waitForSelector("table", { timeout: 10000 });
         countPage = 0; // Reset page counter
@@ -263,7 +263,7 @@ test("check customer", async ({ page }) => {
 
           console.log(
             `Mismatch found at row ${countRow + 1
-            } name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`
+            } name: ${fullName} - before(${before}) - used(${totalCredit}) !== after(${after}) adjusted_credit: ${adjusted_credit}`,
           );
         }
       }
@@ -292,7 +292,7 @@ test("check customer", async ({ page }) => {
         await page.waitForTimeout(5000);
         // ກວດຊື່ຄືກັນ
         const itemsLocator = page.locator(
-          'xpath=//*[@id="root"]/div/main/div[2]/div/div[2]/div[2]/div[1]/div[1]'
+          'xpath=//*[@id="root"]/div/main/div[2]/div/div[2]/div[2]/div[1]/div[1]',
         );
         await itemsLocator
           .waitFor({ state: "visible", timeout: 5000 })
@@ -327,7 +327,7 @@ test("check customer", async ({ page }) => {
               .getByRole("cell", { name: user.mail, exact: true })
               .first()
               .click();
-          }else{
+          } else {
             await page
               .getByRole("cell", { name: "+856 -", exact: true })
               .first()
@@ -336,7 +336,7 @@ test("check customer", async ({ page }) => {
         } else if (items === 0) {
           if (user.phone) {
             const searchBox = page.getByPlaceholder(
-              "ค้นหาด้วยชื่อ และ นามสกุล"
+              "ค้นหาด้วยชื่อ และ นามสกุล",
             );
             await searchBox.clear();
             await searchBox.fill("");
@@ -350,7 +350,7 @@ test("check customer", async ({ page }) => {
               .click();
           } else if (user.mail) {
             const searchBox = page.getByPlaceholder(
-              "ค้นหาด้วยชื่อ และ นามสกุล"
+              "ค้นหาด้วยชื่อ และ นามสกุล",
             );
             await searchBox.clear();
             await searchBox.fill("");
@@ -405,123 +405,169 @@ test("check customer", async ({ page }) => {
 
       await page.getByRole("combobox").click();
       await page.getByLabel("เติมเงิน").click();
-      let use_at: string = user.state_at.split(' ')[0]; // "08/01/2026"
-      let end_at: string = user.out_end_at.split(' ')[0]; // "08/01/2026"
-      let [state_day, state_month, state_year] = use_at.split('/').map(Number);
-      let [end_day, end_month, end_year] = end_at.split('/').map(Number);
-      const [monthToday, dayToday, yearToday] = new Date().toLocaleDateString('en-US').split('/').map(Number);
+      let use_at: string = user.state_at.split(" ")[0]; // "08/01/2026"
+      let end_at: string = user.out_end_at.split(" ")[0]; // "08/01/2026"
+      let [state_day, state_month, state_year] = use_at.split("/").map(Number);
+      let [end_day, end_month, end_year] = end_at.split("/").map(Number);
+      const [monthToday, dayToday, yearToday] = new Date()
+        .toLocaleDateString("en-US")
+        .split("/")
+        .map(Number);
       //covert day from 01,02 to 1,2
       state_day = Number(state_day);
       end_day = Number(end_day);
 
-      await page.getByRole('button', { name: 'วันที่เริ่มต้น' }).click();
-      console.log(`Selecting start date: ${state_day}/${state_month}/${state_year}`);
+      await page.getByRole("button", { name: "วันที่เริ่มต้น" }).click();
+      console.log(
+        `Selecting start date: ${state_day}/${state_month}/${state_year}`,
+      );
       console.log(`Current end date: ${end_day}/${end_month}/${end_year}`);
       console.log(`Today's date: ${dayToday}/${monthToday}/${yearToday}`);
       if (yearToday == state_year) {
-        console.log('same year for state_at');
+        console.log("same year for state_at");
 
         if (monthToday == state_month) {
-          console.log('same month for state_at');
-          await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).first().click();
+          console.log("same month for state_at");
+          await page
+            .getByRole("gridcell", { name: state_day.toString(), exact: true })
+            .first()
+            .click();
         } else if (monthToday < state_month) {
-          console.log('state_month is ahead');
-          await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
-          for (let c = 0; c < (state_month - monthToday); c++) {
-            await page.getByLabel('Go to next month').first().click();
+          console.log("state_month is ahead");
+          await page
+            .getByLabel("Go to next month")
+            .first()
+            .waitFor({ timeout: 5000 });
+          for (let c = 0; c < state_month - monthToday; c++) {
+            await page.getByLabel("Go to next month").first().click();
           }
-          await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).first().click();
+          await page
+            .getByRole("gridcell", { name: state_day.toString(), exact: true })
+            .first()
+            .click();
         } else if (monthToday > state_month) {
-          console.log('state_month is behind');
-          await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
-          for (let c = 0; c < (monthToday - state_month); c++) {
-            await page.getByLabel('Go to previous month').first().click();
+          console.log("state_month is behind");
+          await page
+            .getByLabel("Go to previous month")
+            .first()
+            .waitFor({ timeout: 5000 });
+          for (let c = 0; c < monthToday - state_month; c++) {
+            await page.getByLabel("Go to previous month").first().click();
           }
-          await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).first().click();
+          await page
+            .getByRole("gridcell", { name: state_day.toString(), exact: true })
+            .first()
+            .click();
         }
       } else if (yearToday > state_year) {
-        console.log('state_year is behind');
-        await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
+        console.log("state_year is behind");
+        await page
+          .getByLabel("Go to previous month")
+          .first()
+          .waitFor({ timeout: 5000 });
         let allMonths = (yearToday - state_year) * 12;
         for (let c = 0; c < allMonths + (monthToday - state_month); c++) {
-          await page.getByLabel('Go to previous month').first().click();
+          await page.getByLabel("Go to previous month").first().click();
           console.log(`minus 1 yn>y ${c + 1}`);
         }
-        await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).first().click();
+        await page
+          .getByRole("gridcell", { name: state_day.toString(), exact: true })
+          .first()
+          .click();
       } else if (yearToday < state_year) {
-        console.log('state_year is ahead');
+        console.log("state_year is ahead");
         let allMonths = (state_year - yearToday) * 12;
-        await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
+        await page
+          .getByLabel("Go to next month")
+          .first()
+          .waitFor({ timeout: 5000 });
         for (let c = 0; c < allMonths + (state_month - monthToday); c++) {
-          await page.getByLabel('Go to next month').first().click();
+          await page.getByLabel("Go to next month").first().click();
         }
-        await page.getByRole('gridcell', { name: state_day.toString(), exact: true }).first().click();
+        await page
+          .getByRole("gridcell", { name: state_day.toString(), exact: true })
+          .first()
+          .click();
       } else {
-        console.log('error date state_at');
-
+        console.log("error date state_at");
       }
 
       // await page.getByRole("button", { name: "วันที่สิ้นสุด" }).click();
-      await page.getByRole('button', { name: 'วันที่สิ้นสุด' }).click();
+      await page.getByRole("button", { name: "วันที่สิ้นสุด" }).click();
 
       if (yearToday == end_year) {
-        console.log('same year for end_at');
+        console.log("same year for end_at");
         await page.getByRole("gridcell").first().waitFor({ timeout: 5000 });
         if (monthToday == end_month) {
-          console.log('same month for end_at');
-          await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).first().click();
-
+          console.log("same month for end_at");
+          await page
+            .getByRole("gridcell", { name: end_day.toString(), exact: true })
+            .first()
+            .click();
         } else if (monthToday < end_month) {
-          console.log('end_month is ahead');
-          await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
-          for (let c = 0; c < (end_month - monthToday); c++) {
-
-            await page.getByLabel('Go to next month').first().click();
+          console.log("end_month is ahead");
+          await page
+            .getByLabel("Go to next month")
+            .first()
+            .waitFor({ timeout: 5000 });
+          for (let c = 0; c < end_month - monthToday; c++) {
+            await page.getByLabel("Go to next month").first().click();
             console.log(`add mp<m ${c + 1}`);
           }
-          await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).first().click();
+          await page
+            .getByRole("gridcell", { name: end_day.toString(), exact: true })
+            .first()
+            .click();
         } else if (monthToday > end_month) {
-          console.log('end_month is behind');
-          await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
-          for (let c = 0; c < (monthToday - end_month); c++) {
-
-            await page.getByLabel('Go to previous month').first().click();
+          console.log("end_month is behind");
+          await page
+            .getByLabel("Go to previous month")
+            .first()
+            .waitFor({ timeout: 5000 });
+          for (let c = 0; c < monthToday - end_month; c++) {
+            await page.getByLabel("Go to previous month").first().click();
             console.log(`minus mn>m ${c + 1}`);
           }
-          await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).first().click();
+          await page
+            .getByRole("gridcell", { name: end_day.toString(), exact: true })
+            .first()
+            .click();
         }
-
       } else if (yearToday > end_year) {
-        console.log('end_year is behind');
+        console.log("end_year is behind");
         let allMonths = (yearToday - end_year) * 12;
-        await page.getByLabel('Go to previous month').first().waitFor({ timeout: 5000 });
+        await page
+          .getByLabel("Go to previous month")
+          .first()
+          .waitFor({ timeout: 5000 });
         for (let c = 0; c < allMonths + (monthToday - end_month); c++) {
           console.log(`minus 2 yn>y ${c + 1}`);
-          await page.getByLabel('Go to previous month').first().click();
-
+          await page.getByLabel("Go to previous month").first().click();
         }
-        await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).first().click();
+        await page
+          .getByRole("gridcell", { name: end_day.toString(), exact: true })
+          .first()
+          .click();
         console.log(`add ${end_day}`);
       } else if (yearToday < end_year) {
-        console.log('end_year is ahead');
+        console.log("end_year is ahead");
         let allMonths = (end_year - yearToday) * 12;
-        await page.getByLabel('Go to next month').first().waitFor({ timeout: 5000 });
+        await page
+          .getByLabel("Go to next month")
+          .first()
+          .waitFor({ timeout: 5000 });
         for (let c = 0; c < allMonths + (end_month - monthToday); c++) {
-          await page.getByLabel('Go to next month').first().click();
+          await page.getByLabel("Go to next month").first().click();
           console.log(`add yp<y ${c + 1}`);
         }
-        await page.getByRole('gridcell', { name: end_day.toString(), exact: true }).first().click();
+        await page
+          .getByRole("gridcell", { name: end_day.toString(), exact: true })
+          .first()
+          .click();
       } else {
-        console.log('error date end_at');
+        console.log("error date end_at");
         // return false;
       }
-
-
-
-
-
-
-
       // await page
       //   .getByRole("gridcell", { name: endDay.toString(), exact: true })
       //   .first()
@@ -539,7 +585,11 @@ test("check customer", async ({ page }) => {
       const lists =
         Number.parseFloat((listtext || "0").replace(/[^0-9.-]/g, "")) || 0;
 
-      const createUserRecord = (listcredit: number[], creditNum: number, topupDate: string[]) => ({
+      const createUserRecord = (
+        listcredit: number[],
+        creditNum: number,
+        topupDate: string[],
+      ) => ({
         id: id++,
         name: user.name,
         creditBefore: user.creditBefore,
@@ -547,7 +597,8 @@ test("check customer", async ({ page }) => {
         creditAfter: user.creditAfter,
         credTopup: creditNum,
         listTopup: listcredit,
-        differ: (user.creditBefore + creditNum - user.totalCredit) - user.creditAfter,
+        differ:
+          user.creditBefore + creditNum - user.totalCredit - user.creditAfter,
         creditAfterTrue: user.creditBefore + creditNum - user.totalCredit,
         state_at: user.state_at,
         end_at: user.end_at,
@@ -588,32 +639,39 @@ test("check customer", async ({ page }) => {
           const startTime = parseThaiDateTime(user.state_at);
           const endTime = parseThaiDateTime(user.out_end_at);
 
-          
-
           if (topupTime >= startTime && topupTime <= endTime) {
             hasTopup = true;
-            console.log(`Topup found: ${date_Topup} is between ${user.state_at} and ${user.out_end_at} YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES`);
-         
+            console.log(
+              `Topup found: ${date_Topup} is between ${user.state_at} and ${user.out_end_at} YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES`,
+            );
+
             credit_historys.push(
-              Number.parseFloat(credit_history.replace(/[^0-9.-]/g, "")) || 0
+              Number.parseFloat(credit_history.replace(/[^0-9.-]/g, "")) || 0,
             );
             date_Topups.push(date_Topup);
           }
         }
 
         if (!hasTopup) {
-          console.log(`No topup found for ${user.name} NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO `);
+          console.log(
+            `No topup found for ${user.name} NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO `,
+          );
           dataFilter.push(createUserRecord([], 0, ["No Topup"]));
         } else {
-          const creditNum =
-            credit_historys.reduce((acc, val) => acc + val, 0);
+          const creditNum = credit_historys.reduce((acc, val) => acc + val, 0);
           const creditAfterTrue =
             user.creditBefore + creditNum - user.totalCredit;
 
           if (creditAfterTrue !== user.creditAfter) {
-            dataFilter.push(createUserRecord(credit_historys, creditNum, date_Topups));
             console.log(
-              `Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`
+              `topup but ${user.name}'s Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME Not THE SAME `,
+            );
+
+            dataFilter.push(
+              createUserRecord(credit_historys, creditNum, date_Topups),
+            );
+            console.log(
+              `Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`,
             );
           } else {
             console.log(`${user.name}: credit consistent`);
@@ -622,17 +680,17 @@ test("check customer", async ({ page }) => {
       }
 
       await page.goto(
-        "https://admin.moveinno.com/move-ev/user-management?page=1"
+        "https://admin.moveinno.com/move-ev/user-management?page=1",
       );
       await page.waitForSelector("table", { timeout: 5000 });
     } catch (error) {
       console.error(
         `Error processing user ${user.name}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
       // Navigate back on error
       await page.goto(
-        "https://admin.moveinno.com/move-ev/user-management?page=1"
+        "https://admin.moveinno.com/move-ev/user-management?page=1",
       );
       await page.waitForSelector("table", { timeout: 5000 });
     }
@@ -647,7 +705,7 @@ test("check customer", async ({ page }) => {
   try {
     const now = new Date();
     const timestamp = `${String(now.getHours()).padStart(2, "0")}-${String(
-      now.getMinutes()
+      now.getMinutes(),
     ).padStart(2, "0")}-${String(now.getSeconds()).padStart(2, "0")}`;
 
     // Create the CheckOn_ folder if it doesn't exist
@@ -666,7 +724,7 @@ test("check customer", async ({ page }) => {
       endDate +
       "Test_at" +
       timestamp +
-      ".json"
+      ".json",
     );
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
     const filePathFilter = path.join(
@@ -679,12 +737,12 @@ test("check customer", async ({ page }) => {
       endDate +
       "Test_at" +
       timestamp +
-      ".json"
+      ".json",
     );
     fs.writeFileSync(
       filePathFilter,
       JSON.stringify(dataFilter, null, 2),
-      "utf8"
+      "utf8",
     );
     console.log(`Saved ${dataFilter.length} records to using.json`);
     console.log("Data saved:", dataFilter);

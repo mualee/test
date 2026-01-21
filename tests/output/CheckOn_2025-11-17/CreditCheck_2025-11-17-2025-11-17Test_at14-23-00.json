@@ -1,0 +1,226 @@
+[
+  {
+    "id": 0,
+    "name": "Bem bb",
+    "creditBefore": 104591,
+    "totalCredit": 139503,
+    "creditAfter": -34943,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 31,
+    "creditAfterTrue": -34912,
+    "state_at": "17/11/2025 21:49:53",
+    "end_at": "17/11/2025 22:49:36",
+    "out_end_at": "17/11/2025 23:42:19",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "4001"
+  },
+  {
+    "id": 1,
+    "name": "Leevongxiong  BREAXA ",
+    "creditBefore": 61344,
+    "totalCredit": 60836,
+    "creditAfter": 100384,
+    "credTopup": 100000,
+    "listTopup": [
+      100000
+    ],
+    "differ": 124,
+    "creditAfterTrue": 100508,
+    "state_at": "17/11/2025 18:59:39",
+    "end_at": "17/11/2025 19:15:28",
+    "out_end_at": "17/11/2025 19:29:58",
+    "topup_at": [
+      "17/11/2025 19:29:19"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 2,
+    "name": "Khammuan Douangamphai",
+    "creditBefore": 132817,
+    "totalCredit": 127679,
+    "creditAfter": 5076,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 62,
+    "creditAfterTrue": 5138,
+    "state_at": "17/11/2025 16:40:00",
+    "end_at": "17/11/2025 17:30:04",
+    "out_end_at": "17/11/2025 17:30:07",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "2000"
+  },
+  {
+    "id": 3,
+    "name": "amyy thipkesone ",
+    "creditBefore": 93982,
+    "totalCredit": 24802,
+    "creditAfter": 68468,
+    "credTopup": 2200000,
+    "listTopup": [
+      2200000
+    ],
+    "differ": 2200712,
+    "creditAfterTrue": 2269180,
+    "state_at": "17/11/2025 15:25:07",
+    "end_at": "17/11/2025 15:27:58",
+    "out_end_at": "17/11/2025 15:53:26",
+    "topup_at": [
+      "17/11/2025 15:51:23"
+    ],
+    "errorCode": "4001"
+  },
+  {
+    "id": 4,
+    "name": "Khaimouk  chanthaly",
+    "creditBefore": 190544,
+    "totalCredit": 147606,
+    "creditAfter": 42783,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 155,
+    "creditAfterTrue": 42938,
+    "state_at": "17/11/2025 14:50:10",
+    "end_at": "17/11/2025 15:35:56",
+    "out_end_at": "17/11/2025 15:37:12",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 5,
+    "name": "kham kfl",
+    "creditBefore": 54633,
+    "totalCredit": 51894,
+    "creditAfter": 502522,
+    "credTopup": 500000,
+    "listTopup": [
+      500000
+    ],
+    "differ": 217,
+    "creditAfterTrue": 502739,
+    "state_at": "17/11/2025 14:13:27",
+    "end_at": "17/11/2025 14:25:29",
+    "out_end_at": "17/11/2025 14:37:50",
+    "topup_at": [
+      "17/11/2025 14:36:09"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 6,
+    "name": "lo li",
+    "creditBefore": 200000,
+    "totalCredit": 160313,
+    "creditAfter": 39501,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 186,
+    "creditAfterTrue": 39687,
+    "state_at": "17/11/2025 12:10:14",
+    "end_at": "17/11/2025 13:13:56",
+    "out_end_at": "17/11/2025 13:38:11",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "4001"
+  },
+  {
+    "id": 7,
+    "name": "Khen Luangxay ",
+    "creditBefore": 144980,
+    "totalCredit": 37591,
+    "creditAfter": 107327,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 62,
+    "creditAfterTrue": 107389,
+    "state_at": "17/11/2025 11:26:56",
+    "end_at": "17/11/2025 11:49:13",
+    "out_end_at": "17/11/2025 11:49:31",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 8,
+    "name": "ພູຜາສິດ ສີພັນທອງ",
+    "creditBefore": 37355,
+    "totalCredit": 67869,
+    "creditAfter": 69455,
+    "credTopup": 100000,
+    "listTopup": [
+      100000
+    ],
+    "differ": 31,
+    "creditAfterTrue": 69486,
+    "state_at": "17/11/2025 08:48:39",
+    "end_at": "17/11/2025 09:50:31",
+    "out_end_at": "17/11/2025 09:50:49",
+    "topup_at": [
+      "17/11/2025 08:55:31"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 9,
+    "name": "Maxky SSD",
+    "creditBefore": 272762,
+    "totalCredit": 217,
+    "creditAfter": 272762,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -217,
+    "creditAfterTrue": 272545,
+    "state_at": "17/11/2025 08:22:04",
+    "end_at": "17/11/2025 08:22:52",
+    "out_end_at": "17/11/2025 08:22:52",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "200B"
+  },
+  {
+    "id": 10,
+    "name": "Bounhome phoumin",
+    "creditBefore": 56231,
+    "totalCredit": 46950,
+    "creditAfter": 9095,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 186,
+    "creditAfterTrue": 9281,
+    "state_at": "17/11/2025 06:54:03",
+    "end_at": "17/11/2025 07:10:29",
+    "out_end_at": "17/11/2025 07:10:47",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 11,
+    "name": "ຮັກ ລີນທອງພັນ",
+    "creditBefore": 276539,
+    "totalCredit": 75988,
+    "creditAfter": 200427,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": 124,
+    "creditAfterTrue": 200551,
+    "state_at": "17/11/2025 06:19:53",
+    "end_at": "17/11/2025 06:54:21",
+    "out_end_at": "17/11/2025 06:54:29",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  }
+]
