@@ -1,0 +1,110 @@
+[
+  {
+    "id": 0,
+    "name": "ปเช เช",
+    "creditBefore": 54811,
+    "totalCredit": 70207,
+    "creditAfter": 84604,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -100000,
+    "creditAfterTrue": -15396,
+    "state_at": "18/01/2026 23:15:41",
+    "end_at": "18/01/2026 23:47:49",
+    "out_end_at": "18/01/2026 23:47:49",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 1,
+    "name": "ກິ່ງແກ້ວ ອິນທະວົງ",
+    "creditBefore": 94395,
+    "totalCredit": 86680,
+    "creditAfter": 207715,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -200000,
+    "creditAfterTrue": 7715,
+    "state_at": "18/01/2026 22:41:40",
+    "end_at": "18/01/2026 23:05:56",
+    "out_end_at": "18/01/2026 23:05:59",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "2028"
+  },
+  {
+    "id": 2,
+    "name": "rock khamsengsai",
+    "creditBefore": 42633,
+    "totalCredit": 115096,
+    "creditAfter": 27537,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -100000,
+    "creditAfterTrue": -72463,
+    "state_at": "18/01/2026 22:03:43",
+    "end_at": "18/01/2026 23:03:37",
+    "out_end_at": "18/01/2026 23:04:20",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 3,
+    "name": "noy douangkeo",
+    "creditBefore": 115530,
+    "totalCredit": 109333,
+    "creditAfter": 206197,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -200000,
+    "creditAfterTrue": 6197,
+    "state_at": "18/01/2026 21:55:49",
+    "end_at": "18/01/2026 23:48:46",
+    "out_end_at": "18/01/2026 23:48:54",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 4,
+    "name": "meo linthamath",
+    "creditBefore": 59230,
+    "totalCredit": 56960,
+    "creditAfter": 102270,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -100000,
+    "creditAfterTrue": 2270,
+    "state_at": "18/01/2026 17:46:41",
+    "end_at": "18/01/2026 18:25:30",
+    "out_end_at": "18/01/2026 18:25:30",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  },
+  {
+    "id": 5,
+    "name": "sai saisana",
+    "creditBefore": 56082,
+    "totalCredit": 69877,
+    "creditAfter": 86205,
+    "credTopup": 0,
+    "listTopup": [],
+    "differ": -100000,
+    "creditAfterTrue": -13795,
+    "state_at": "18/01/2026 11:10:52",
+    "end_at": "18/01/2026 11:59:08",
+    "out_end_at": "18/01/2026 11:59:29",
+    "topup_at": [
+      "No Topup"
+    ],
+    "errorCode": "-"
+  }
+]

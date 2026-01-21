@@ -26,12 +26,13 @@ interface UserDataFilter {
   totalCredit: number;
   creditAfter: number;
   credTopup?: number;
+  listTopup?: number[];
   differ: number;
   creditAfterTrue?: number;
   state_at: string;
   end_at: string;
   out_end_at: string;
-  topup_at?: string;
+  topup_at?: string[];
   errorCode: string;
 }
 interface AllCompleted {
@@ -82,8 +83,8 @@ function parseThaiDateTime(dateTimeStr: string): Date {
 const data: UserData[] = [];
 const dataFilter: UserDataFilter[] = [];
 //yyyy-mm-dd
-const startDate = "2026-1-18";
-const endDate = "2026-1-18";
+const startDate = "2026-1-17";
+const endDate = "2026-1-17";
 const statusTH = ["กำลังชาร์จ", "ชาร์จเสร็จ"];
 const statusEN = ["CHARGING", "COMPLETED"];
 // day == getDate() only dd from startDate
@@ -538,13 +539,14 @@ test("check customer", async ({ page }) => {
       const lists =
         Number.parseFloat((listtext || "0").replace(/[^0-9.-]/g, "")) || 0;
 
-      const createUserRecord = (creditNum: number, topupDate: string) => ({
+      const createUserRecord = (listcredit: number[], creditNum: number, topupDate: string[]) => ({
         id: id++,
         name: user.name,
         creditBefore: user.creditBefore,
         totalCredit: user.totalCredit,
         creditAfter: user.creditAfter,
         credTopup: creditNum,
+        listTopup: listcredit,
         differ: (user.creditBefore + creditNum - user.totalCredit) - user.creditAfter,
         creditAfterTrue: user.creditBefore + creditNum - user.totalCredit,
         state_at: user.state_at,
@@ -556,14 +558,16 @@ test("check customer", async ({ page }) => {
 
       if (lists === 0) {
         console.log(`No transaction history for user: ${user.name}`);
-        dataFilter.push(createUserRecord(0, "No Topup"));
+        dataFilter.push(createUserRecord([], 0, ["No Topup"]));
       } else {
         console.log(`Transaction history found for user: ${user.name}`);
         let credit_history = "0";
         let date_Topup = "No Topup";
+        let credit_historys = [];
+        let date_Topups = [];
         let hasTopup = false;
 
-        for (let i = 1; i <= lists && !hasTopup; i++) {
+        for (let i = 1; i <= lists; i++) {
           const [creditText, dateText] = await Promise.all([
             page
               .locator(`#credit-history-${i}`)
@@ -584,24 +588,30 @@ test("check customer", async ({ page }) => {
           const startTime = parseThaiDateTime(user.state_at);
           const endTime = parseThaiDateTime(user.out_end_at);
 
-          hasTopup = topupTime >= startTime && topupTime <= endTime;
+          
 
-          if (hasTopup) {
+          if (topupTime >= startTime && topupTime <= endTime) {
+            hasTopup = true;
             console.log(`Topup found: ${date_Topup} is between ${user.state_at} and ${user.out_end_at} YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES YES`);
+         
+            credit_historys.push(
+              Number.parseFloat(credit_history.replace(/[^0-9.-]/g, "")) || 0
+            );
+            date_Topups.push(date_Topup);
           }
         }
 
         if (!hasTopup) {
           console.log(`No topup found for ${user.name} NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO NO `);
-          dataFilter.push(createUserRecord(0, "No Topup"));
+          dataFilter.push(createUserRecord([], 0, ["No Topup"]));
         } else {
           const creditNum =
-            Number.parseFloat(credit_history.replace(/[^0-9.-]/g, "")) || 0;
+            credit_historys.reduce((acc, val) => acc + val, 0);
           const creditAfterTrue =
             user.creditBefore + creditNum - user.totalCredit;
 
           if (creditAfterTrue !== user.creditAfter) {
-            dataFilter.push(createUserRecord(creditNum, date_Topup));
+            dataFilter.push(createUserRecord(credit_historys, creditNum, date_Topups));
             console.log(
               `Credit mismatch for ${user.name}: expected ${creditAfterTrue}, got ${user.creditAfter}`
             );
