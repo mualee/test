@@ -1,0 +1,32 @@
+[
+  {
+    "id": 0,
+    "name": "Phonepaseuth  Linthippavong",
+    "creditBefore": 44357,
+    "totalCredit": 118103,
+    "creditAfter": 26254,
+    "credTopup": 0,
+    "differ": -100000,
+    "creditAfterTrue": -73746,
+    "state_at": "18/01/2026 14:41:15",
+    "end_at": "18/01/2026 15:01:08",
+    "out_end_at": "18/01/2026 15:01:15",
+    "topup_at": "No Topup",
+    "errorCode": "4003"
+  },
+  {
+    "id": 1,
+    "name": "ສີທະນົນໄຊ ຈັນມະນີວົງ",
+    "creditBefore": 26285,
+    "totalCredit": 80017,
+    "creditAfter": 46268,
+    "credTopup": 0,
+    "differ": -100000,
+    "creditAfterTrue": -53732,
+    "state_at": "18/01/2026 14:19:34",
+    "end_at": "18/01/2026 14:44:11",
+    "out_end_at": "18/01/2026 14:44:29",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  }
+]

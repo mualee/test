@@ -1,0 +1,62 @@
+[
+  {
+    "id": 0,
+    "name": "aekkaphong VONGITTHIPHON",
+    "creditBefore": 106836,
+    "totalCredit": 121915,
+    "creditAfter": 84921,
+    "credTopup": 0,
+    "differ": -100000,
+    "creditAfterTrue": -15079,
+    "state_at": "17/01/2026 22:07:59",
+    "end_at": "17/01/2026 22:49:53",
+    "out_end_at": "17/01/2026 22:50:15",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  },
+  {
+    "id": 1,
+    "name": "su manivong",
+    "creditBefore": 23638,
+    "totalCredit": 67869,
+    "creditAfter": 55769,
+    "credTopup": 0,
+    "differ": -100000,
+    "creditAfterTrue": -44231,
+    "state_at": "17/01/2026 18:45:23",
+    "end_at": "17/01/2026 19:24:54",
+    "out_end_at": "17/01/2026 19:24:54",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  },
+  {
+    "id": 2,
+    "name": "Thala Chounlamany",
+    "creditBefore": 163563,
+    "totalCredit": 50294,
+    "creditAfter": 513362,
+    "credTopup": 100000,
+    "differ": -300093,
+    "creditAfterTrue": 213269,
+    "state_at": "17/01/2026 15:55:31",
+    "end_at": "17/01/2026 16:09:43",
+    "out_end_at": "17/01/2026 16:21:37",
+    "topup_at": "17/1/2026 16:19:52",
+    "errorCode": "-"
+  },
+  {
+    "id": 3,
+    "name": "phouva SLPY",
+    "creditBefore": 106852,
+    "totalCredit": 120521,
+    "creditAfter": 86331,
+    "credTopup": 0,
+    "differ": -100000,
+    "creditAfterTrue": -13669,
+    "state_at": "17/01/2026 15:52:34",
+    "end_at": "17/01/2026 16:29:42",
+    "out_end_at": "17/01/2026 16:29:50",
+    "topup_at": "No Topup",
+    "errorCode": "-"
+  }
+]
